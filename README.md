@@ -68,6 +68,8 @@ Serve the build locally:
 
 ## Steps to build this demo
 
+### __Continue from where the previous version left off__
+
 1. Follow the steps in [the Alpha 0 README's 'Steps to build this demo'
    ](https://github.com/not-timid/a0#steps-to-build-this-demo)
 2. Find and replace `Alpha 0` to `Alpha 1`, `a0` to `a1`, and `0.0.0` to `0.0.1`
@@ -79,3 +81,53 @@ Serve the build locally:
    <https://not-timid.com/> is redirecting to <https://not-timid.com/a1/>
 7. The visual transition should be smooth, so you may need to update the style,
    layout and content of not-timid.github.io
+
+### __Install Tailwind CSS__
+
+Follow the the ['Install' section of the Next.js Tailwind CSS docs:
+](https://tailwindcss.com/docs/guides/nextjs)
+
+1. `npm install -D tailwindcss postcss autoprefixer` which adds 53 packages:  
+   14.7 MB for 1401 items (the '5 moderate severity vulnerabilities' are from
+   previously installed packages)
+2. `npx tailwindcss init -p` to generate tailwind.config.js and
+   postcss.config.js
+3. In tailwind.config.js, change `content: [],` to:
+   ```js
+   content: [
+     './src/**/*.{js,ts,jsx,tsx,mdx}',
+   ],
+   ```
+4. In src/app/global.css, add the following three lines to the top:
+   ```css
+   @tailwind base;
+   @tailwind components;
+   @tailwind utilities;
+   ```
+5. From the ['2022-05 Update' of this Stack Overflow answer,
+   ](https://stackoverflow.com/a/61333686) prevent the
+   "Unknown at rule @tailwind css(unknownAtRules)" VS Code warning by installing
+   v0.9.11 of the [The official Tailwind CSS IntelliSense extension
+   ](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
+   and also [adding `"*.css": "tailwindcss"` to `"files.associations"`
+   ](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss#recommended-vs-code-settings)
+6. `npm run dev` and visit <http://localhost:3000/a1>, where you should see that
+   Tailwind has made the &lt;H1> and &lt;H2> text the same size, and smaller
+7. In src/app/page.tsx change `<h1>NOT-TIMID</h1>` to:  
+   ```html
+   <h1 className="text-3xl font-bold underline">NOT-TIMID</h1>
+   ```
+8. You should see that the classes have been applied to the &lt;H1> element
+
+Before settling on Tailwind..
+
+I first tried to follow the steps in [part 1 of this Semantic UI with custom
+theming article,](https://annacoding.com/article/6FndBILqMD16Bp7w95WJrd) but it
+threw some nasty Webpack errors.
+- `npm install semantic-ui-less @zeit/next-less` would add 521 packages:  
+  64 MB for 7166 items, 31 vulnerabilities (23 moderate, 6 high, 2 critical)
+
+I also tried the ['Install' section of the React Semantic UI docs,
+](https://react.semantic-ui.com/usage#install) but couldn't get it to work.
+- `npm install semantic-ui-react semantic-ui-css` would add 16 packages:  
+  26 MB for 3936 items, and just 5 moderate severity vulnerabilities
