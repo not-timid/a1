@@ -1,11 +1,14 @@
 # a1
 
-__NOT-TIMID Alpha 1: A minimal 'Coming Soon' page, bootstrapped with__
-__`create-next-app` 13.4.7__
+__NOT-TIMID Alpha 1: Proof-of-tech routing and responsive layout__
 
 ⊖ __Version:__ 0.0.1  
 ⊖ __Repo:__ <https://github.com/not-timid/a1>  
 ⊖ __URL:__ <https://not-timid.com/a1/>
+
+---
+
+## Tech stack
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with
 [`create-next-app`
@@ -65,4 +68,14 @@ Serve the build locally:
 
 ## Steps to build this demo
 
-@TODO
+1. Follow the steps in [the Alpha 0 README's 'Steps to build this demo'
+   ](https://github.com/not-timid/a0#steps-to-build-this-demo)
+2. Find and replace `Alpha 0` to `Alpha 1`, `a0` to `a1`, and `0.0.0` to `0.0.1`
+3. Change the `description` to fit the intent of this repo
+4. `npm run build`, test locally, commit and push to GitHub
+5. Once GitHub Pages has deployed, find and replace `a0` to `a1` in
+   [the apex landing-page](https://github.com/not-timid/not-timid.github.io)
+6. Commit and push not-timid.github.io, and after Pages has deployed check that
+   <https://not-timid.com/> is redirecting to <https://not-timid.com/a1/>
+7. The visual transition should be smooth, so you may need to update the style,
+   layout and content of not-timid.github.io
