@@ -31,13 +31,18 @@ more about Next.js:
    `node --version # should be 'v16.8.0' or greater`  
    Node 16.8.0 is the minimum specified by [the Next.js 'installation' docs
    ](https://nextjs.org/docs/getting-started/installation)
-3. Check your __VS Code__ version:  
+
+### __Set up VS Code__
+
+1. Check your __VS Code__ version:  
    `code --version # should be '1.79.1' or greater`
-4. In VS Code, install and enable version 1.3.0 or greater of the
+2. Control-Comma in VS Code to show settings, search for 'editor.tabSize', and
+   set it to '2' — this suits files like .tsx which have nested HTML markup
+3. In VS Code, install and enable version 1.3.0 or greater of the
    [`dnamsons.kimbie-dark-plus`
    ](https://marketplace.visualstudio.com/items?itemName=dnamsons.kimbie-dark-plus)
    theme
-5. And install and enable version 0.9.11 or greater of the
+4. And install and enable version 0.9.11 or greater of the
    [`bradlc.vscode-tailwindcss`
    ](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
    extension
@@ -139,3 +144,47 @@ Then I tried the ['Install' section of the React Semantic UI docs,
 `npm install semantic-ui-react semantic-ui-css` would add 16 packages:
 26 MB for 3936 items, the '5 moderate severity vulnerabilities' are from
 previously installed packages.
+
+### __Create a &lt;Header> component__
+
+1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+2. `mkdir src/app/components && touch src/app/components/header.tsx`
+3. Export a default `Header()` function, with some simple Tailwind styling:
+   ```jsx
+   import Link from 'next/link'
+    
+   export default function Header() {
+     return (
+       <nav className="px-2 py-1 bg-white dark:bg-black">
+         <Link href="/">NOT-TIMID</Link> &nbsp;
+         <Link href="/moodboard">Moodboard</Link> &nbsp;
+         <Link href="/floorplan">Floorplan</Link> &nbsp;
+         <Link href="/visual">Visual</Link>
+         <aside><code>/a1</code></aside>
+       </nav>
+     )
+   }
+   ```
+4. Import it into src/app/layout.tsx
+5. The `Home()` function in src/app/page.tsx can now be simplified
+6. Clicking on the new links should currently show a
+   [404 This page could not be found](http://localhost:3000/a1/moodboard) page
+7. In Terminal, Control-C to stop the `npm run dev`
+
+### __Get Next.js's App Router working__
+
+New for Next.js 13 is the [App Router,](https://nextjs.org/docs/app) which
+replaces the old 'Pages Router'.
+
+1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+2. Command-T and `cd src/app`
+3. `mkdir floorplan && cp page.tsx floorplan/page.tsx`
+4. Edit the new src/app/floorplan/page.tsx to make it minimal but unique, eg:  
+   `export default function Floorplan() { return <h1>Floorplan</h1> }`
+5. Visit <http://localhost:3000/a1/floorplan> to see the rendered page
+6. `mkdir moodboard && cp floorplan/page.tsx moodboard/page.tsx`
+7. `mkdir visual && cp floorplan/page.tsx visual/page.tsx`
+8. Make the new Moodboard and Visual page.tsx files minimal but unique
+9. Visit the new pages in your browser, to check they're working
+10. Close that Terminal tab, and Control-C to stop the `npm run dev`
+11. `npm run build && npm start` and check the four routes still work

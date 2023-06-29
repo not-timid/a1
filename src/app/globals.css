@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-html { margin:0 2em; text-align:center; font:21px Arial, sans-serif;
+html { font:21px Arial, sans-serif;
   background:#e8ff00; color:#120 }
 aside { position:absolute; font-size:.5em; top:.8em; right:1em }
 @media(prefers-color-scheme:dark) {
