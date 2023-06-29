@@ -1,6 +1,6 @@
 {
   "name": "not-timid",
-  "description": "NOT-TIMID Alpha 1: Proof-of-tech routing and responsive layout",
+  "description": "NOT-TIMID Alpha 1: Proof-of-tech styled responsive layout with routing",
   "version": "0.0.1",
   "private": false,
   "scripts": {
