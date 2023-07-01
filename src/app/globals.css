@@ -2,5 +2,4 @@
 @tailwind components;
 @tailwind utilities;
 
-html { font:21px Arial, sans-serif; }
 aside { position:absolute; font-size:.5em; top:.8em; right:1em }

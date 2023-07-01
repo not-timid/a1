@@ -1,1 +1,3 @@
-export default function Floorplan() { return <h1>Floorplan</h1> }
+export default function Floorplan() {
+  return <h1 className="font-serif">Floorplan</h1>
+}

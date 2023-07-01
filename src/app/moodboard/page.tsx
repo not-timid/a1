@@ -1,1 +1,3 @@
-export default function Moodboard() { return <h1>Moodboard</h1> }
+export default function Moodboard() {
+  return <h1 className="font-serif">Moodboard</h1>
+}

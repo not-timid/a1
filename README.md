@@ -195,7 +195,7 @@ replaces the old 'Pages Router'.
 
 From the [Using the default colors
 ](https://tailwindcss.com/docs/customizing-colors#using-the-default-colors)
-section of the Tailwind CSS docs:
+section of the Tailwind 'Customizing Colors' docs:
 
 1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
 2. Remove all `background` and `color` rules from src/app/globals.css
@@ -246,3 +246,12 @@ section of the Tailwind CSS docs:
 7. Check that the new colours are working, eg in src/app/components/header.tsx  
    add `bg-grey-800 text-lemon` to the `<nav className="...">`
 8. In Terminal, Control-C to stop `npm run dev`
+
+### __Add custom fonts__
+
+From the [With Tailwind CSS
+](https://nextjs.org/docs/app/building-your-application/optimizing/fonts#with-tailwind-css)
+section of the Tailwind 'Font Optimization' docs:
+
+1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+2. Remove `font:21px Arial, sans-serif;` from src/app/globals.css

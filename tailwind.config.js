@@ -1,4 +1,5 @@
 import colors from 'tailwindcss/colors'
+import { fontFamily } from 'tailwindcss/defaultTheme'
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -29,6 +30,10 @@ module.exports = {
           '900': '#2e401a',
           '950': '#121a0c',
         },
+      },
+      fontFamily: {
+        sans: ['var(--font-albert)', ...fontFamily.sans],
+        serif: ['var(--font-zilla)', ...fontFamily.serif],
       },
     },
   },
