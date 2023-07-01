@@ -94,7 +94,7 @@ Serve the build locally:
 
 ### __Install Tailwind CSS__
 
-Follow the the ['Install' section of the Next.js Tailwind CSS docs:
+Follow the ['Install' section of the Next.js Tailwind CSS docs:
 ](https://tailwindcss.com/docs/guides/nextjs)
 
 1. `npm install -D tailwindcss postcss autoprefixer` which adds 53 packages,
@@ -129,6 +129,7 @@ Follow the the ['Install' section of the Next.js Tailwind CSS docs:
    <h1 className="text-3xl font-bold underline">NOT-TIMID</h1>
    ```
 8. You should see that the classes have been applied to the &lt;H1> element
+9. In Terminal, Control-C to stop `npm run dev`
 
 #### __Notes on trying (and failing) to install Semantic UI__
 
@@ -155,8 +156,8 @@ previously installed packages.
     
    export default function Header() {
      return (
-       <nav className="px-2 py-1 bg-white dark:bg-black">
-         <Link href="/">NOT-TIMID</Link> &nbsp;
+       <nav className="px-2 py-1">
+         NOT-TIMID &nbsp;
          <Link href="/moodboard">Moodboard</Link> &nbsp;
          <Link href="/floorplan">Floorplan</Link> &nbsp;
          <Link href="/visual">Visual</Link>
@@ -165,11 +166,12 @@ previously installed packages.
      )
    }
    ```
+   _Note that `<Link href="/">` would not work after `npm run build`_
 4. Import it into src/app/layout.tsx
 5. The `Home()` function in src/app/page.tsx can now be simplified
 6. Clicking on the new links should currently show a
    [404 This page could not be found](http://localhost:3000/a1/moodboard) page
-7. In Terminal, Control-C to stop the `npm run dev`
+7. In Terminal, Control-C to stop `npm run dev`
 
 ### __Get Next.js's App Router working__
 
@@ -186,5 +188,61 @@ replaces the old 'Pages Router'.
 7. `mkdir visual && cp floorplan/page.tsx visual/page.tsx`
 8. Make the new Moodboard and Visual page.tsx files minimal but unique
 9. Visit the new pages in your browser, to check they're working
-10. Close that Terminal tab, and Control-C to stop the `npm run dev`
+10. Close that Terminal tab, and Control-C to stop `npm run dev`
 11. `npm run build && npm start` and check the four routes still work
+
+### __Modify the default Tailwind theme's colours__
+
+From the [Using the default colors
+](https://tailwindcss.com/docs/customizing-colors#using-the-default-colors)
+section of the Tailwind CSS docs:
+
+1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+2. Remove all `background` and `color` rules from src/app/globals.css
+3. Check that Tailwind's colours are working, eg in src/app/layout.tsx  
+   add `className="bg-neutral-200 text-neutral-800"` to the `<html>` element
+4. In tailwind.config.js add `import colors from 'tailwindcss/colors'`
+5. Modify the default Tailwind theme, so that only a few colour-names are valid.  
+   This keeps the app on-brand, and will also simplify Intellisense suggestions.  
+   For example, change:
+   ```js
+   theme: {
+     extend: {},
+   },
+   ```
+   To:
+   ```js
+   theme: {
+     colors: {
+       black: colors.black,
+       current: 'currentColor',
+       grey: colors.neutral, // aliased 'neutral' to 'grey'
+       transparent: 'transparent',
+       white: colors.white,
+     },
+     extend: {
+       colors: {
+         lemon: {
+           '50': '#fffccc',
+           '100': '#fffd99',
+           '200': '#faff66',
+           '300': '#eeff33',
+           '400': '#ddff00',
+           'DEFAULT': '#ddff00',
+           '500': '#b1d911',
+           '600': '#8bb31d',
+           '700': '#698c22',
+           '800': '#4a6621',
+           '900': '#2e401a',
+           '950': '#121a0c',
+         },
+       },
+     },
+   },
+   ```
+   Note that changes to tailwind.config.js should be hot-reloaded to the browser
+6. Check that 'neutral' has now been renamed 'grey', eg in src/app/layout.tsx  
+   add `className="bg-grey-200 text-grey-800"` to the `<html>` element
+7. Check that the new colours are working, eg in src/app/components/header.tsx  
+   add `bg-grey-800 text-lemon` to the `<nav className="...">`
+8. In Terminal, Control-C to stop `npm run dev`
