@@ -149,7 +149,7 @@ previously installed packages.
 ### __Create a &lt;Header> component__
 
 1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
-2. `mkdir src/app/components && touch src/app/components/header.tsx`
+2. `mkdir src/components && touch src/components/header.tsx`
 3. Export a default `Header()` function, with some simple Tailwind styling:
    ```jsx
    import Link from 'next/link'
@@ -172,6 +172,16 @@ previously installed packages.
 6. Clicking on the new links should currently show a
    [404 This page could not be found](http://localhost:3000/a1/moodboard) page
 7. In Terminal, Control-C to stop `npm run dev`
+
+__Why src/components/ not src/app/components/ ?__  
+From Next.js 13 onwards components in src/app/ are considered [server components
+](https://nextjs.org/docs/getting-started/react-essentials#thinking-in-server-components)
+by default. Since this app is intended to be served from CDN or GitHub Pages, it
+will not be using server components. That means the src/app/ can be treated
+solely as the router root, as advocated in this [Stack Overflow answer,
+](https://stackoverflow.com/a/76214566) and the [Store project files outside of
+app](https://nextjs.org/docs/app/building-your-application/routing/colocation#store-project-files-outside-of-app) section of the 
+Next.js Project Organization docs.
 
 ### __Get Next.js's App Router working__
 
@@ -220,6 +230,14 @@ section of the Tailwind 'Customizing Colors' docs:
        transparent: 'transparent',
        white: colors.white,
      },
+     extend: {},
+   },
+   ```
+   Note that changes to tailwind.config.js should be hot-reloaded to the browser
+6. Extend the theme, with some custom colours:
+   ```js
+   theme: {
+     ...
      extend: {
        colors: {
          lemon: {
@@ -240,18 +258,72 @@ section of the Tailwind 'Customizing Colors' docs:
      },
    },
    ```
-   Note that changes to tailwind.config.js should be hot-reloaded to the browser
-6. Check that 'neutral' has now been renamed 'grey', eg in src/app/layout.tsx  
+7. Check that 'neutral' has now been renamed 'grey', eg in src/app/layout.tsx  
    add `className="bg-grey-200 text-grey-800"` to the `<html>` element
-7. Check that the new colours are working, eg in src/app/components/header.tsx  
+8. Check that the new colours are working, eg in src/components/header.tsx  
    add `bg-grey-800 text-lemon` to the `<nav className="...">`
-8. In Terminal, Control-C to stop `npm run dev`
+9. In Terminal, Control-C to stop `npm run dev`
 
 ### __Add custom fonts__
 
 From the [With Tailwind CSS
 ](https://nextjs.org/docs/app/building-your-application/optimizing/fonts#with-tailwind-css)
-section of the Tailwind 'Font Optimization' docs:
+section of the Next.js 'Font Optimization' docs:
 
 1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
-2. Remove `font:21px Arial, sans-serif;` from src/app/globals.css
+2. Remove all `font` and `font-family` rules from src/app/globals.css
+3. In src/app/layout.js insert a new import to the top of the file:  
+   `import { Albert_Sans, Zilla_Slab } from 'next/font/google'`
+4. Add the following configuration and setup to src/app/layout.js:  
+   ```js
+   const albert = Albert_Sans({
+     display: 'swap',
+     subsets: ['latin'],
+     variable: '--font-albert',
+     weight: '500',
+   })
+   const zilla = Zilla_Slab({
+     display: 'swap',
+     subsets: ['latin'],
+     variable: '--font-zilla',
+     weight: '500',
+   })
+   const className = `
+     ${albert.variable} ${zilla.variable}
+     font-sans
+     bg-grey-200 text-grey-800
+   `
+   ```
+5. And change the `<html>` tag to:  
+   `<html lang="en" className={className}>`
+6. In tailwind.config.js add
+   `import { fontFamily } from 'tailwindcss/defaultTheme'`
+7. Extend the theme in tailwind.config.js, with some custom [Google fonts:
+   ](https://fonts.google.com/variablefonts)
+   ```js
+   theme: {
+     ...
+     extend: {
+       colors: {
+         ...
+       },
+       fontFamily: {
+         sans: ['var(--font-albert)', ...fontFamily.sans],
+         serif: ['var(--font-zilla)', ...fontFamily.serif],
+       },
+     },
+   },
+   ```
+8. Check that the new fonts are working, eg in src/components/header.tsx  
+   change the text `NOT-TIMID` to:  
+   `<span className="font-serif text-[1.08em]">NOT</span>-TIMID &nbsp;`  
+   ...and in the four page.tsx files, add `className="font-serif"`
+9. In Terminal, Control-C to stop `npm run dev`
+
+__Optionally, check the .woff2 files__  
+After you have run `npm run build` and `npm serve`, use your browser's Network
+inspector to find the URLs of the two .woff2 font files. Visiting these URLs
+should download those files. You can then use an online service like
+<https://fontsee.com/> to check which glyphs are included. Don't forget to
+donate to FontSee's on its Ko-fi page!
+
