@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && touch docs/.nojekyll",
+    "bas": "npm run build && npm start",
     "prestart": "mv docs a1",
     "start": "npx serve@latest",
     "poststart": "mv a1 docs",

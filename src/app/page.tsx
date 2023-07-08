@@ -1,3 +1,3 @@
-export default function Home() {
-  return <h1 className="font-serif">Coming Soon</h1>
+export default function Landing() {
+  return <h1>@TODO non-language animation, then redirect to /a1/en/</h1>
 }

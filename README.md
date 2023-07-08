@@ -72,7 +72,10 @@ Build the app to the docs/ folder:
 `npm run build`
 
 Serve the build locally:  
-`npm run start`
+`npm start`
+
+Or just build and serve in one command:  
+`npm run bas`
 
 ---
 
@@ -146,61 +149,6 @@ Then I tried the ['Install' section of the React Semantic UI docs,
 26 MB for 3936 items, the '5 moderate severity vulnerabilities' are from
 previously installed packages.
 
-### __Create a &lt;Header> component__
-
-1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
-2. `mkdir src/components && touch src/components/header.tsx`
-3. Export a default `Header()` function, with some simple Tailwind styling:
-   ```jsx
-   import Link from 'next/link'
-    
-   export default function Header() {
-     return (
-       <nav className="px-2 py-1">
-         NOT-TIMID &nbsp;
-         <Link href="/moodboard">Moodboard</Link> &nbsp;
-         <Link href="/floorplan">Floorplan</Link> &nbsp;
-         <Link href="/visual">Visual</Link>
-         <aside><code>/a1</code></aside>
-       </nav>
-     )
-   }
-   ```
-   _Note that `<Link href="/">` would not work after `npm run build`_
-4. Import it into src/app/layout.tsx
-5. The `Home()` function in src/app/page.tsx can now be simplified
-6. Clicking on the new links should currently show a
-   [404 This page could not be found](http://localhost:3000/a1/moodboard) page
-7. In Terminal, Control-C to stop `npm run dev`
-
-__Why src/components/ not src/app/components/ ?__  
-From Next.js 13 onwards components in src/app/ are considered [server components
-](https://nextjs.org/docs/getting-started/react-essentials#thinking-in-server-components)
-by default. Since this app is intended to be served from CDN or GitHub Pages, it
-will not be using server components. That means the src/app/ can be treated
-solely as the router root, as advocated in this [Stack Overflow answer,
-](https://stackoverflow.com/a/76214566) and the [Store project files outside of
-app](https://nextjs.org/docs/app/building-your-application/routing/colocation#store-project-files-outside-of-app) section of the 
-Next.js Project Organization docs.
-
-### __Get Next.js's App Router working__
-
-New for Next.js 13 is the [App Router,](https://nextjs.org/docs/app) which
-replaces the old 'Pages Router'.
-
-1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
-2. Command-T and `cd src/app`
-3. `mkdir floorplan && cp page.tsx floorplan/page.tsx`
-4. Edit the new src/app/floorplan/page.tsx to make it minimal but unique, eg:  
-   `export default function Floorplan() { return <h1>Floorplan</h1> }`
-5. Visit <http://localhost:3000/a1/floorplan> to see the rendered page
-6. `mkdir moodboard && cp floorplan/page.tsx moodboard/page.tsx`
-7. `mkdir visual && cp floorplan/page.tsx visual/page.tsx`
-8. Make the new Moodboard and Visual page.tsx files minimal but unique
-9. Visit the new pages in your browser, to check they're working
-10. Close that Terminal tab, and Control-C to stop `npm run dev`
-11. `npm run build && npm start` and check the four routes still work
-
 ### __Modify the default Tailwind theme's colours__
 
 From the [Using the default colors
@@ -258,11 +206,10 @@ section of the Tailwind 'Customizing Colors' docs:
      },
    },
    ```
-7. Check that 'neutral' has now been renamed 'grey', eg in src/app/layout.tsx  
-   add `className="bg-grey-200 text-grey-800"` to the `<html>` element
-8. Check that the new colours are working, eg in src/components/header.tsx  
-   add `bg-grey-800 text-lemon` to the `<nav className="...">`
-9. In Terminal, Control-C to stop `npm run dev`
+7. Check that the new colours are working, and that 'neutral' has now been
+   renamed 'grey', eg in src/app/layout.tsx add:  
+   `className="bg-grey-200 text-lemon"` to the `<html>` element
+8. In Terminal, Control-C to stop `npm run dev`
 
 ### __Add custom fonts__
 
@@ -314,10 +261,8 @@ section of the Next.js 'Font Optimization' docs:
      },
    },
    ```
-8. Check that the new fonts are working, eg in src/components/header.tsx  
-   change the text `NOT-TIMID` to:  
-   `<span className="font-serif text-[1.08em]">NOT</span>-TIMID &nbsp;`  
-   ...and in the four page.tsx files, add `className="font-serif"`
+8. Check that the new fonts are working, eg in src/app/layout.tsx add:  
+   `font-serif` to the `className` prop, and then change that to `font-sans`
 9. In Terminal, Control-C to stop `npm run dev`
 
 __Optionally, check the .woff2 files__  
@@ -325,5 +270,138 @@ After you have run `npm run build` and `npm serve`, use your browser's Network
 inspector to find the URLs of the two .woff2 font files. Visiting these URLs
 should download those files. You can then use an online service like
 <https://fontsee.com/> to check which glyphs are included. Don't forget to
-donate to FontSee's on its Ko-fi page!
+donate to FontSee on its Ko-fi page!
 
+### __Create a &lt;Header> component__
+
+1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+2. `mkdir src/components && touch src/components/header.tsx`
+3. Export a default `Header()` function, with some Tailwind styling:
+   ```jsx
+   // src/components/header.tsx
+   import Link from 'next/link'
+   export default function Header() {
+     return (
+       <nav className="px-2 py-1 bg-grey-800 text-lemon">
+         <Link href="/en">
+           <span className="font-serif text-[1.08em]">NOT</span>-TIMID
+         </Link> &nbsp;
+         <Link href="/en/moodboard">Moodboard</Link> &nbsp;
+         <Link href="/en/floorplan">Floorplan</Link> &nbsp;
+         <Link href="/en/visual">Visual</Link>
+         <aside><code>/a1</code></aside>
+       </nav>
+     )
+   }
+   ```
+   _Note that `<Link href="/">` would not work after `npm run build`_
+4. Import it into src/app/layout.tsx
+5. The `Home()` function in src/app/page.tsx can now be simplified
+6. Clicking on the new links should currently show a
+   [404 This page could not be found](http://localhost:3000/en/a1/visual) page
+7. In Terminal, Control-C to stop `npm run dev`
+
+__Why src/components/ not src/app/components/ ?__  
+From Next.js 13 onwards components in src/app/ are considered [server components
+](https://nextjs.org/docs/getting-started/react-essentials#thinking-in-server-components)
+by default. Since this app is intended to be served from CDN or GitHub Pages, it
+will not be using server components. That means the src/app/ can be treated
+solely as the router root, as advocated in this [Stack Overflow answer,
+](https://stackoverflow.com/a/76214566) and the [Store project files outside of
+app](https://nextjs.org/docs/app/building-your-application/routing/colocation#store-project-files-outside-of-app) section of the 
+Next.js Project Organization docs.
+
+### __Create initial routes for a static multilingual app__
+
+New for Next.js 13 is the [App Router,](https://nextjs.org/docs/app) which
+replaces the old 'Pages Router'.
+
+1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+2. Command-T to open a new tab, and `mkdir public`
+3. `touch public/legacy-browser-fallback.js` and add placeholder code:  
+   `console.log('@TODO legacy browser fallback')`
+4. The remaining new files will all go in src/app/, so `cd src/app`
+5. The src/app/ layout and page will be used for a short animation and redirect.  
+   They should be language-agnostic - that is, they should contain no text:
+   ```js
+   // src/app/layout.tsx
+   import { Albert_Sans, Zilla_Slab } from 'next/font/google'
+   import Script from 'next/script';
+   import './globals.css'
+   
+   const albert = Albert_Sans({
+     display:'swap', subsets:['latin'], variable:'--font-albert', weight:'500' })
+   const zilla = Zilla_Slab({
+     display:'swap', subsets:['latin'], variable:'--font-zilla', weight:'500' })
+   const className = `
+     ${albert.variable} ${zilla.variable} font-sans
+     bg-grey-200 text-grey-800`
+   
+   export const metadata = {
+     title: 'NOT-TIMID',
+     description: '...', // we don't know the user's language yet
+   }
+   
+   export default function RootLayout({
+     children,
+   }: {
+     children: React.ReactNode
+   }) {
+     return (
+       <html lang="en">
+         <head>
+           <Script src='/a1/legacy-browser-fallback.js'></Script>
+         </head>
+         <body className={className}>
+           {children}
+         </body>
+       </html>
+     )
+   }
+   ```
+   ```js
+   // src/app/page.tsx
+   export default function Landing() {
+     return <h1>@TODO non-language animation, then redirect to /a1/en/</h1>
+   }
+   ```
+6. `mkdir en && cp layout.tsx en/layout.tsx && cp page.tsx en/page.tsx`
+7. The src/app/en/ layout and page create the English-language homepage:
+   ```js
+   // src/app/en/layout.tsx
+   import Header from '../../components/header'
+   
+   export const metadata = {
+     title: 'NOT-TIMID',
+     description: 'AI-assisted creative apps',
+   }
+   
+   export default function HomeEnLayout({
+     children,
+   }: {
+     children: React.ReactNode
+   }) {
+     return (
+       <main>
+         <Header />
+         {children}
+       </main>
+     )
+   }
+   ```
+   ```js
+   // src/app/en/page.tsx
+   export default function HomeEn() {
+     return <h1 className="font-serif">Coming Soon</h1>
+   }
+   ```
+8. `mkdir en/floorplan && cp en/page.tsx en/floorplan/page.tsx`
+9. Edit the new src/app/en/floorplan/page.tsx to make it minimal but unique, eg:  
+   `export default function Floorplan() { return <h1>Floorplan</h1> }`
+10. Visit <http://localhost:3000/a1/floorplan> to see the rendered page
+11. `mkdir en/moodboard && cp en/floorplan/page.tsx en/moodboard/page.tsx`
+12. `mkdir en/visual && cp en/floorplan/page.tsx en/visual/page.tsx`
+13. Make the new Moodboard and Visual page.tsx files minimal but unique
+14. Visit the new pages in your browser, to check they're working
+15. Command-W to close the 2nd Terminal tab, and Control-C to stop `npm run dev`
+16. `npm run bas` and check that the five routes work
