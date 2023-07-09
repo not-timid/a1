@@ -1,7 +1,5 @@
-'use client'
-import useI18nEs from '../../../hooks/use-i18n-es'
+import t from '../../../locales/es'
 
 export default function FloorplanEs() {
-  const { t } = useI18nEs()
-  return <h1 className="font-serif">{t('floorplan.title')}</h1>
+  return <h1 className="font-serif">{t.floorplan.title} {t.floorplan.intro}</h1>
 }

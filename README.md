@@ -427,7 +427,7 @@ Next.js's built-in Internationalized Routing does not integrate with
    'Muy pronto' instead of 'Coming soon'
 5. Control-C to stop `npm run dev`
 
-### Maybe use Rosetta for internationalisation
+### Use simple object imports for internationalisation
 
 Next.js is relaxed about the choice of i18n library. From the
 [Internationalization (i18n) Routing docs:
@@ -438,103 +438,100 @@ Next.js is relaxed about the choice of i18n library. From the
 > next-translate, next-multilingual, typesafe-i18n, tolgee, and others by
 > streamlining the routes and locale parsing."
 
-I looked at a few of these. In particular I tried installing 'typesafe-i18n',
-but I found it too obtrusive and too fully featured. But since simpler is
-better, I settled on Rosetta.
+I looked at a few of these. In particular I tried installing:
+- 'typesafe-i18n' - too obtrusive and fully featured
+- 'rosetta' - simple and straightforward, see the now-deleted
+  'Maybe use Rosetta for internationalisation' section of this README.md,
+  at commit 07bd343
 
-1. `npm install --save rosetta` to [install Rosetta
-   ](https://github.com/lukeed/rosetta#install):
-   ```
-   added 2 packages, and audited 347 packages in 3s
-   ...
-   7 moderate severity vulnerabilities
-   ...
-   ```
-   This adds 21 items, ~27 kB to node_modules/
-2. `mkdir src/locales && touch src/locales/en.json` and paste in:
-   ```json
-   {
-     "code": "en",
-     "floorplan": { "route": "floorplan", "title": "Floorplan" },
-     "home": { "title": "Coming Soon" },
-     "moodboard": { "route": "moodboard", "title": "Moodboard" },
-     "visual": { "route": "visual", "title": "Visual" }
-   }
-   ```
-3. `cp src/locales/en.json src/locales/es.json` and translate it to Spanish
-4. `mkdir src/hooks && touch src/hooks/use-i18n-en.ts` and paste in:
+But there were two problems I could not solve. Firstly, the entire 'en.json'
+locale files were replicated in each generated page .js file, including text not
+used on that page. Secondly, the `useContext()` hook needs components to begin
+`'use client'`, but that prevents `<head>` from being updated from sub-layouts.
+
+My solution, described below, just uses simple `import` statements. Firstly this
+lets Webpack's tree-shaking remove unused text from the docs/ page .js files.
+Secondly, it avoids `'use client'`, so that sub-layouts can update `<head>`.
+
+1. `mkdir src/locales && touch src/locales/locale-schema.d.ts` and paste in:
    ```ts
-   // src/hooks/use-i18n-en.ts
-   import { createContext, useContext } from 'react'
-   import rosetta from 'rosetta'
-   import en from '../locales/en.json'
-   export default function useI18nEn() {
-     const Rosetta = rosetta({ en })
-     Rosetta.locale('en')
-     return useContext(createContext(Rosetta))
+   interface Page {
+     intro: string;
+     route: string;
+     title: string;
+   }
+   export default interface Locale {
+     /** Two-character language code, eg 'pt' for Portuguese. */
+     code: string;
+     /** The value for `<meta name="description" ...>` in the `<head>`. */
+     description: string;
+     floorplan: Page;
+     home: Page;
+     moodboard: Page;
+     visual: Page;
    }
    ```
-5. `cp src/hooks/use-i18n-en.ts src/hooks/use-i18n-es.ts` and replace  
-   `useI18nEn()` with `useI18nEs()`, and all `en` instances with `es`
-6. Update the eight page.tsx files. For example, src/app/es/plano/page.tsx:
+2. `touch src/locales/en.ts` and paste in:
+   ```ts
+   import Locale from './locale-schema'
+   const en: Locale = {
+     code: 'en',
+     description: 'AI-assisted creative apps',
+     floorplan: { intro: 'Lorem', route: 'floorplan', title: 'Floorplan' },
+     home: { intro: 'Coming Soon', route: '', title: 'NOT-TIMID' },
+     moodboard: { intro: 'Ipsum', route: 'moodboard', title: 'Moodboard' },
+     visual: { intro: 'Dolor', route: 'visual', title: 'Visual' },
+   }
+   export default en
+   ```
+3. `cp src/locales/en.ts src/locales/es.ts` and translate it to Spanish, using
+   'Consectetur', 'Adipiscing' and 'Elit' for the three placeholder intros.
+4. Update the eight page.tsx files. For example, src/app/es/plano/page.tsx:
    ```tsx
-   'use client'
-   import useI18nEs from '../../../hooks/use-i18n-es'
+   import t from '../../../locales/es'
    export default function FloorplanEs() {
-     const { t } = useI18nEs()
-     return <h1 className="font-serif">{t('floorplan.title')}</h1>
+     return <h1 className="font-serif">{t.floorplan.title} {t.floorplan.intro}</h1>
    }
    ```
-   The `'use client'` is needed to avoid a ReactServerComponentsError
-7. Make the Header component accept Rosetta's `t()` function:
+5. Make the Header component accept a `Locale` object called `t`:
    ```tsx
    // src/components/header.tsx
    import Link from 'next/link'
-   // From node_modules/rosetta/rosetta.d.ts
-   type RosettaTFn = <X extends Record<string, any> | any[]>
-     (key: string | (string | number)[], params?: X, lang?: string) => string
-   export default function Header({ t }: { t: RosettaTFn }) {
-     const base = `/${t('code')}`
+   import Locale from '../locales/locale-schema'   
+   export default function Header({ t }: { t: Locale }) {
+     const base = `/${t.code}`
      return (
        <nav className="px-2 py-1 bg-grey-800 text-lemon">
          <Link href={base}>
            <span className="font-serif text-[1.08em]">NOT</span>-TIMID
          </Link> &nbsp;
-         <Link href={`${base}/${t('moodboard.route')}`}>{t('moodboard.title')}</Link> &nbsp;
-         <Link href={`${base}/${t('floorplan.route')}`}>{t('floorplan.title')}</Link> &nbsp;
-         <Link href={`${base}/${t('visual.route')}`}>{t('visual.title')}</Link>
+         <Link href={`${base}/${t.moodboard.route}`}>{t.moodboard.title}</Link> &nbsp;
+         <Link href={`${base}/${t.floorplan.route}`}>{t.floorplan.title}</Link> &nbsp;
+         <Link href={`${base}/${t.visual.route}`}>{t.visual.title}</Link>
          <aside><code>/a1</code></aside>
        </nav>
      )
    }
    ```
-8. Update two of the layout.tsx files. For example, src/app/es/layout.tsx:
+6. Update two of the layout.tsx files. For example, src/app/es/layout.tsx:
    ```tsx
-   'use client'
-   import useI18nEs from '../../../hooks/use-i18n-es'
-   export default function FloorplanEs() {
-     const { t } = useI18nEs()
-     return <h1 className="font-serif">{t('floorplan.title')}</h1>
+   import Header from '../../components/header'
+   import t from '../../locales/es'
+   export const metadata = { description:t.description }
+   export default function LayoutEs(
+    { children }: { children: React.ReactNode }
+   ) {
+     return (
+       <main>
+         <Header t={t} />
+         {children}
+       </main>
+     )
    }
    ```
-   The `'use client'` is needed to avoid a ReactServerComponentsError.  
-   However, `'use client'` components make it difficult to modify the document
-   title and meta description, in static builds.
-
-Note that the following multi-language hook `useI18n('es')` will work, but will
-inject the JSON for all languages into all 'page' .js files, bulking up the
-build folder:
-```ts
-import { createContext, useContext } from 'react'
-import rosetta from 'rosetta'
-import en from '../locales/en.json'
-import es from '../locales/es.json'
-
-export default function useI18n(language:'en'|'es') {
-  const Rosetta = language === 'es'
-    ? rosetta({ es })
-    : rosetta({ en })
-  Rosetta.locale(language)
-  return useContext(createContext(Rosetta))
-}
-```
+7. In Terminal, `npm run build`
+8. You should see that docs/es/plano.html contains:  
+   `<meta name="description" content="Aplicaciones creativas asistidas por IA"/>`
+9. You should also see that docs/es/plano.html contains the word 'Consectetur'
+   in two places, and docs/es/plano.txt contains it once, but neither file
+   contains 'Adipiscing' or 'Elit'

@@ -1,7 +1,5 @@
-'use client'
-import useI18nEs from '../../../hooks/use-i18n-es'
+import t from '../../../locales/es'
 
 export default function MoodboardEs() {
-  const { t } = useI18nEs()
-  return <h1 className="font-serif">{t('moodboard.title')}</h1>
+  return <h1 className="font-serif">{t.moodboard.title} {t.moodboard.intro}</h1>
 }

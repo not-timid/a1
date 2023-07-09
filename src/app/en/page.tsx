@@ -1,7 +1,5 @@
-'use client'
-import useI18nEn from '../../hooks/use-i18n-en'
+import t from '../../locales/en'
 
 export default function HomeEn() {
-  const { t } = useI18nEn()
-  return <h1 className="font-serif">{t('home.title')}</h1>
+  return <h1 className="font-serif">{t.home.title} {t.home.intro}</h1>
 }

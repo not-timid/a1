@@ -11,8 +11,8 @@ const className = `
   bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
 
 export const metadata = {
-  title: 'NOT-TIMID',
   description: '...', // we don't know the user's language yet
+  title: 'NOT-TIMID',
 }
 
 export default function RootLayout({
