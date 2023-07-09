@@ -238,7 +238,7 @@ section of the Next.js 'Font Optimization' docs:
    const className = `
      ${albert.variable} ${zilla.variable}
      font-sans
-     bg-grey-200 text-grey-800
+     bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300
    `
    ```
 5. And change the `<html>` tag to:  
@@ -277,7 +277,7 @@ donate to FontSee on its Ko-fi page!
 1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
 2. `mkdir src/components && touch src/components/header.tsx`
 3. Export a default `Header()` function, with some Tailwind styling:
-   ```jsx
+   ```tsx
    // src/components/header.tsx
    import Link from 'next/link'
    export default function Header() {
@@ -323,7 +323,7 @@ replaces the old 'Pages Router'.
 4. The remaining new files will all go in src/app/, so `cd src/app`
 5. The src/app/ layout and page will be used for a short animation and redirect.  
    They should be language-agnostic - that is, they should contain no text:
-   ```js
+   ```tsx
    // src/app/layout.tsx
    import { Albert_Sans, Zilla_Slab } from 'next/font/google'
    import Script from 'next/script';
@@ -335,7 +335,7 @@ replaces the old 'Pages Router'.
      display:'swap', subsets:['latin'], variable:'--font-zilla', weight:'500' })
    const className = `
      ${albert.variable} ${zilla.variable} font-sans
-     bg-grey-200 text-grey-800`
+     bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
    
    export const metadata = {
      title: 'NOT-TIMID',
@@ -367,7 +367,7 @@ replaces the old 'Pages Router'.
    ```
 6. `mkdir en && cp layout.tsx en/layout.tsx && cp page.tsx en/page.tsx`
 7. The src/app/en/ layout and page create the English-language homepage:
-   ```js
+   ```tsx
    // src/app/en/layout.tsx
    import Header from '../../components/header'
    
@@ -389,7 +389,7 @@ replaces the old 'Pages Router'.
      )
    }
    ```
-   ```js
+   ```tsx
    // src/app/en/page.tsx
    export default function HomeEn() {
      return <h1 className="font-serif">Coming Soon</h1>
@@ -405,3 +405,136 @@ replaces the old 'Pages Router'.
 14. Visit the new pages in your browser, to check they're working
 15. Command-W to close the 2nd Terminal tab, and Control-C to stop `npm run dev`
 16. `npm run bas` and check that the five routes work
+
+### Add a new language route
+
+As the [i18n docs say,
+](https://nextjs.org/docs/pages/building-your-application/routing/internationalization#how-does-this-work-with-static-generation)
+Next.js's built-in Internationalized Routing does not integrate with
+`output: 'export'`. Instead, we will manually recreate the i18n behavior.
+
+1. In Terminal, `cp -R src/app/en/ src/app/es` to start the Spanish locale
+2. Rename the Spanish floorplan.tsx to plano.tsx, moodboard.tsx to
+   tablero-de-humor.tsx and visual.tsx to visualizacion.tsx
+3. Update the page.tsx files. For example, src/app/es/tablero-de-humor/page.tsx:
+   ```tsx
+   export default function MoodboardEs() {
+     return <h1 className="font-serif">Tablero de Humor</h1>
+   }
+   ```
+   Note that `MoodboardEn` becomes `MoodboardEs`, not `TableroDeHumorEs`
+4. `npm run dev` and visit <http://localhost:3000/a1/es>, where you should see
+   'Muy pronto' instead of 'Coming soon'
+5. Control-C to stop `npm run dev`
+
+### Maybe use Rosetta for internationalisation
+
+Next.js is relaxed about the choice of i18n library. From the
+[Internationalization (i18n) Routing docs:
+](https://nextjs.org/docs/pages/building-your-application/routing/internationalization)
+
+> "The i18n routing support is currently meant to complement existing i18n
+> library solutions like react-intl, react-i18next, lingui, rosetta, next-intl,
+> next-translate, next-multilingual, typesafe-i18n, tolgee, and others by
+> streamlining the routes and locale parsing."
+
+I looked at a few of these. In particular I tried installing 'typesafe-i18n',
+but I found it too obtrusive and too fully featured. But since simpler is
+better, I settled on Rosetta.
+
+1. `npm install --save rosetta` to [install Rosetta
+   ](https://github.com/lukeed/rosetta#install):
+   ```
+   added 2 packages, and audited 347 packages in 3s
+   ...
+   7 moderate severity vulnerabilities
+   ...
+   ```
+   This adds 21 items, ~27 kB to node_modules/
+2. `mkdir src/locales && touch src/locales/en.json` and paste in:
+   ```json
+   {
+     "code": "en",
+     "floorplan": { "route": "floorplan", "title": "Floorplan" },
+     "home": { "title": "Coming Soon" },
+     "moodboard": { "route": "moodboard", "title": "Moodboard" },
+     "visual": { "route": "visual", "title": "Visual" }
+   }
+   ```
+3. `cp src/locales/en.json src/locales/es.json` and translate it to Spanish
+4. `mkdir src/hooks && touch src/hooks/use-i18n-en.ts` and paste in:
+   ```ts
+   // src/hooks/use-i18n-en.ts
+   import { createContext, useContext } from 'react'
+   import rosetta from 'rosetta'
+   import en from '../locales/en.json'
+   export default function useI18nEn() {
+     const Rosetta = rosetta({ en })
+     Rosetta.locale('en')
+     return useContext(createContext(Rosetta))
+   }
+   ```
+5. `cp src/hooks/use-i18n-en.ts src/hooks/use-i18n-es.ts` and replace  
+   `useI18nEn()` with `useI18nEs()`, and all `en` instances with `es`
+6. Update the eight page.tsx files. For example, src/app/es/plano/page.tsx:
+   ```tsx
+   'use client'
+   import useI18nEs from '../../../hooks/use-i18n-es'
+   export default function FloorplanEs() {
+     const { t } = useI18nEs()
+     return <h1 className="font-serif">{t('floorplan.title')}</h1>
+   }
+   ```
+   The `'use client'` is needed to avoid a ReactServerComponentsError
+7. Make the Header component accept Rosetta's `t()` function:
+   ```tsx
+   // src/components/header.tsx
+   import Link from 'next/link'
+   // From node_modules/rosetta/rosetta.d.ts
+   type RosettaTFn = <X extends Record<string, any> | any[]>
+     (key: string | (string | number)[], params?: X, lang?: string) => string
+   export default function Header({ t }: { t: RosettaTFn }) {
+     const base = `/${t('code')}`
+     return (
+       <nav className="px-2 py-1 bg-grey-800 text-lemon">
+         <Link href={base}>
+           <span className="font-serif text-[1.08em]">NOT</span>-TIMID
+         </Link> &nbsp;
+         <Link href={`${base}/${t('moodboard.route')}`}>{t('moodboard.title')}</Link> &nbsp;
+         <Link href={`${base}/${t('floorplan.route')}`}>{t('floorplan.title')}</Link> &nbsp;
+         <Link href={`${base}/${t('visual.route')}`}>{t('visual.title')}</Link>
+         <aside><code>/a1</code></aside>
+       </nav>
+     )
+   }
+   ```
+8. Update two of the layout.tsx files. For example, src/app/es/layout.tsx:
+   ```tsx
+   'use client'
+   import useI18nEs from '../../../hooks/use-i18n-es'
+   export default function FloorplanEs() {
+     const { t } = useI18nEs()
+     return <h1 className="font-serif">{t('floorplan.title')}</h1>
+   }
+   ```
+   The `'use client'` is needed to avoid a ReactServerComponentsError.  
+   However, `'use client'` components make it difficult to modify the document
+   title and meta description, in static builds.
+
+Note that the following multi-language hook `useI18n('es')` will work, but will
+inject the JSON for all languages into all 'page' .js files, bulking up the
+build folder:
+```ts
+import { createContext, useContext } from 'react'
+import rosetta from 'rosetta'
+import en from '../locales/en.json'
+import es from '../locales/es.json'
+
+export default function useI18n(language:'en'|'es') {
+  const Rosetta = language === 'es'
+    ? rosetta({ es })
+    : rosetta({ en })
+  Rosetta.locale(language)
+  return useContext(createContext(Rosetta))
+}
+```

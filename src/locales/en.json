@@ -1,0 +1,8 @@
+{
+  "code": "en",
+  "description": "AI-assisted creative apps",
+  "floorplan": { "route": "floorplan", "title": "Floorplan" },
+  "home": { "title": "Coming Soon" },
+  "moodboard": { "route": "moodboard", "title": "Moodboard" },
+  "visual": { "route": "visual", "title": "Visual" }
+}

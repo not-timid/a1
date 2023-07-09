@@ -8,7 +8,7 @@ const zilla = Zilla_Slab({
   display:'swap', subsets:['latin'], variable:'--font-zilla', weight:'500' })
 const className = `
   ${albert.variable} ${zilla.variable} font-sans
-  bg-grey-200 text-grey-800`
+  bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
 
 export const metadata = {
   title: 'NOT-TIMID',

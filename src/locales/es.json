@@ -1,0 +1,8 @@
+{
+  "code": "es",
+  "description": "Aplicaciones creativas asistidas por IA",
+  "floorplan": { "route": "plano", "title": "Plano" },
+  "home": { "title": "Muy Pronto" },
+  "moodboard": { "route": "tablero-de-humor", "title": "Tablero de Humor" },
+  "visual": { "route": "visualizacion", "title": "Visualizacion" }
+}

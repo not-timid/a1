@@ -1,3 +1,7 @@
+'use client'
+import useI18nEn from '../../../hooks/use-i18n-en'
+
 export default function VisualEn() {
-  return <h1 className="font-serif">Visual</h1>
+  const { t } = useI18nEn()
+  return <h1 className="font-serif">{t('visual.title')}</h1>
 }

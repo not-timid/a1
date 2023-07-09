@@ -1,6 +1,6 @@
 'use client'
 import Header from '../../components/header'
-import useI18nEn from '../../hooks/use-i18n-en'
+import useI18nEs from '../../hooks/use-i18n-es'
 
 // export const metadata = {
 //   title: 'NOT-TIMID',
@@ -12,7 +12,7 @@ export default function HomeEnLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { t } = useI18nEn()
+  const { t } = useI18nEs()
   return (
     <main>
       <Header t={t} />
