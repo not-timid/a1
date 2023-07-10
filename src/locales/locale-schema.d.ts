@@ -6,7 +6,7 @@ interface Page {
 export default interface Locale {
   /** Two-character language code, eg 'pt' for Portuguese. */
   code: string;
-  /** The value for `<meta name="description" ...>` in the `<head>`. */
+  /** The content for `<meta name="description" ...>` in the `<head>`. */
   description: string;
   floorplan: Page;
   home: Page;

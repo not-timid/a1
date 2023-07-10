@@ -362,7 +362,7 @@ replaces the old 'Pages Router'.
    ```js
    // src/app/page.tsx
    export default function Landing() {
-     return <h1>@TODO non-language animation, then redirect to /a1/en/</h1>
+     return <h1>@TODO non-language animation, then redirect to /a1/*/</h1>
    }
    ```
 6. `mkdir en && cp layout.tsx en/layout.tsx && cp page.tsx en/page.tsx`
@@ -463,7 +463,7 @@ Secondly, it avoids `'use client'`, so that sub-layouts can update `<head>`.
    export default interface Locale {
      /** Two-character language code, eg 'pt' for Portuguese. */
      code: string;
-     /** The value for `<meta name="description" ...>` in the `<head>`. */
+     /** The content for `<meta name="description" ...>` in the `<head>`. */
      description: string;
      floorplan: Page;
      home: Page;
@@ -535,3 +535,111 @@ Secondly, it avoids `'use client'`, so that sub-layouts can update `<head>`.
 9. You should also see that docs/es/plano.html contains the word 'Consectetur'
    in two places, and docs/es/plano.txt contains it once, but neither file
    contains 'Adipiscing' or 'Elit'
+
+### Fix the `<html lang="...">` attribute
+
+Before this stage, the Spanish pages use `<html lang="en">`. This can be
+fixed by [creating multiple root layouts.
+](https://nextjs.org/docs/app/building-your-application/routing/route-groups#creating-multiple-root-layouts)
+
+The default language (English, in this case) will need to be set up a little
+differently to the other languages, because the landing page /a1/ is in the
+default language (see step 6., below).
+
+1. `touch src/components/root-layout.tsx` and paste in:
+   ```tsx
+   import Script from 'next/script'
+   export default function RootLayout(
+     { children, className, lang } :
+     { children:React.ReactNode, className:string, lang:'en'|'es' }
+   ) {
+     return (
+       <html lang={lang}>
+         <Script src='/a1/legacy-browser-fallback.js'></Script>
+         <body className={className}>{children}</body>
+       </html>
+     )
+   }
+   ```
+2. `mkdir src/lib && touch src/lib/class-name-latin.ts` and paste in:
+   ```ts
+   import { Albert_Sans, Zilla_Slab } from 'next/font/google'
+   
+   // The 'latin' subset covers most Western European languages.
+   const albert = Albert_Sans({
+     display:'swap', subsets:['latin'], variable:'--font-albert', weight:'500' })
+   const zilla = Zilla_Slab({
+     display:'swap', subsets:['latin'], variable:'--font-zilla', weight:'500' })
+   
+   const classNameLatin = `
+     ${albert.variable} ${zilla.variable} font-sans
+     bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
+   export default classNameLatin
+   ```
+3. Next we'll need to move the files in src/app/ around, so `cd src/app`
+4. `mkdir \(english\) && mkdir \(spanish\)` to create two Next.js 'Route Groups'
+5. `mv en \(english\) && mv es \(spanish\)` which will keep the /a1/en/... and
+    /a1/es/... routes working as before
+6. `mv page.tsx \(english\) && mv layout.tsx \(english\)` to move the landing
+   page and its layout to the default language's route group.  
+   Next.js expects exactly one Route Group to contain a page.tsx file in its top
+   level. It treats that page.tsx as the /a1/ root route. In NOT-TIMID's case,
+   that page.tsx will be our landing page, which won't look like it's in any
+   particular language. It will need to favour a language in two places though:
+   - `<html lang="...">` which will be the default NOT-TIMID language, `"en"`
+   - `<meta name="description" content="..."` which will be some English text
+7. The landing page's layout should use root-layout.tsx and class-name-latin.ts:
+   ```tsx
+   // src/app/(english)/layout.tsx
+   import RootLayout from '../../components/root-layout'
+   import className from '../../lib/class-name-latin'
+   import t from '../../locales/en'
+   import '../globals.css'
+   
+   export const metadata = {
+     description: t.description,
+     title: 'NOT-TIMID',
+   }
+   
+   export default function LayoutEn(
+     { children }: { children: React.ReactNode }
+   ) {
+     return <RootLayout className={className} lang="en">{children}</RootLayout>
+   }
+   ```
+8. Now the Spanish language can be given its own layout, which will specify the
+   important `lang="es"` attribute:
+   ```tsx
+   // src/app/(spanish)/layout.tsx
+   import RootLayout from '../../components/root-layout'
+   import className from '../../lib/class-name-latin'
+   import t from '../../locales/es'
+   import '../globals.css'
+   
+   // Override some of the metadata that src/app/(english)/layout.tsx exports.
+   export const metadata = { description: t.description }
+   
+   export default function LayoutEs(
+     { children }: { children: React.ReactNode }
+   ) {
+     return <RootLayout className={className} lang="es">{children}</RootLayout>
+   }
+   ```
+9. The second-level layout.tsx files no longer need to export `metadata`, eg:
+   ```tsx
+   // src/app/(spanish)/es/layout.tsx
+   import Header from '../../../components/header'
+   import t from '../../../locales/es'
+   export default function LayoutEs(
+     { children }: { children: React.ReactNode }
+   ) {
+     return (
+       <main>
+         <Header t={t} />
+         {children}
+       </main>
+     )
+   }
+   ```
+   ...The English version of this is identical, apart from importing `t` from
+   es.ts, and naming the exported function `LayoutEn()`
