@@ -643,3 +643,66 @@ default language (see step 6., below).
    ```
    ...The English version of this is identical, apart from importing `t` from
    es.ts, and naming the exported function `LayoutEn()`
+
+### __Install and use Carbon React icons__
+
+I searched for a free (donation-ware), React-compatible icon library, with a
+fairly broad set of useful icons. In particular, square line-caps to fit the
+Zilla slab typeface.
+
+- From [this Untitled UI blog post,
+  ](https://www.untitledui.com/blog/free-icon-sets) a stand-out is
+  [css.gg](https://css.gg/app?s=arrow) which is 1 package, 28.6 MB for 5773
+  items. I wasn't sure about CSS-based icons though, and usage seems tricky
+- From [this Kindacode article,
+  ](https://www.kindacode.com/article/best-open-source-icon-libraries-for-react/)
+  the [IBM Carbon Design System
+  ](https://carbondesignsystem.com/guidelines/icons/library/) ticks all the
+  boxes. The main module and TS types install 4 packages, 46.3 MB for 8502 items
+
+1. In Terminal, `npm install @carbon/icons-react` which adds 3 packages,
+   28.8 MB for 4269 items (the '3 moderate severity vulnerabilities' are all
+   from previously installed packages)
+2. `npm install @types/carbon__icons-react` which adds 1 package,
+   17.5 MB for 4233 items
+3. Search for 'user avatar' on the [Carbon Icons search page,
+   ](https://carbondesignsystem.com/guidelines/icons/library/) and click the
+   `</>` icon under one of the results, to get the component name
+4. Add `import { UserAvatar } from '@carbon/icons-react'` to header.tsx
+5. Inside the Header's `<nav>` element, add:  
+   `<UserAvatar size="24" style={{float:'right',marginRight:24,cursor:'pointer'}} />`
+6. `npm run bas` and 'Inspect' the icon in the browser. You should see it is an
+   inline SVG, containing various `<path>` elements:
+   ```html
+   <svg
+     focusable="false"
+     preserveAspectRatio="xMidYMid meet"
+     xmlns="http://www.w3.org/2000/svg"
+     fill="currentColor"
+     style="float: right; margin-right: 24px; cursor: pointer"
+     width="24"
+     height="24"
+     viewBox="0 0 32 32"
+     aria-hidden="true"
+   >
+     <path
+       d="M16,8a5,5,0,1,0,5,5A5,5,0,0,0,16,8Zm0,8a3,3,0,1,1,3-3A3 ... 1,16,16Z"
+     ></path>
+     <path
+       d="M16,2A14,14,0,1,0,30,16,14.0158,14.0158,0,0,0,16,2ZM10 ... ,15.985,0Z"
+     ></path>
+   </svg>
+   ```
+7. In Terminal, Control-C to stop the server and rename a1/ back to docs/
+8. In VS Code, Command-Shift-F to multi-file search for 'xMidYMid' - you should
+   see that the SVG data is duplicated in 24 places in 16 files
+
+So Carbon React icons are quick and easy to install and use, but node_modules/
+becomes significantly bigger. The .html and .txt files in docs/ will also become
+much bigger, if many/complex icons are used throughout the app.
+
+There may be a more slimline solution but the Carbon React icons are ok for now.
+
+
+
+<!-- 255,924,531 bytes (326.7 MB on disk) for 24,448 items -->
