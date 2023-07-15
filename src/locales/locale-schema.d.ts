@@ -1,15 +1,26 @@
-interface Page {
+export interface HomePageI {
+  /** Introductory text, welcoming the user to the app. */
+  intro: string;
+  title: string;
+}
+export interface PopupI {
+  route: string;
+  title: string;
+}
+export interface CreativePageI {
+  /** Introductory text, shown when no ID is present. */
   intro: string;
   route: string;
   title: string;
 }
-export default interface Locale {
+export default interface LocaleI {
   /** Two-character language code, eg 'pt' for Portuguese. */
   code: string;
   /** The content for `<meta name="description" ...>` in the `<head>`. */
   description: string;
-  floorplan: Page;
-  home: Page;
-  moodboard: Page;
-  visual: Page;
+  floorplan: CreativePageI;
+  home: HomePageI;
+  moodboard: CreativePageI;
+  profile: PopupI;
+  visual: CreativePageI;
 }

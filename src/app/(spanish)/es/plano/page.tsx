@@ -1,5 +1,6 @@
 import t from '../../../../locales/es'
+import CreativePage from '../../../../components/pages/creative-page'
 
 export default function FloorplanEs() {
-  return <h1 className="font-serif">{t.floorplan.title} {t.floorplan.intro}</h1>
+  return <CreativePage t={t.floorplan} />
 }

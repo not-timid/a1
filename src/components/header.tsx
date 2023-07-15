@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { UserAvatar } from '@carbon/icons-react'
 
-import Locale from '../locales/locale-schema'
+import LocaleI from '../locales/locale-schema'
 
-export default function Header({ t }: { t: Locale }) {
+export default function Header({ t }: { t: LocaleI }) {
   const base = `/${t.code}`
   return (
     <nav className="px-2 py-1 bg-grey-800 text-lemon">

@@ -1,5 +1,6 @@
 import t from '../../../../locales/en'
+import CreativePage from '../../../../components/pages/creative-page'
 
 export default function MoodboardEn() {
-  return <h1 className="font-serif">{t.moodboard.title} {t.moodboard.intro}</h1>
+  return <CreativePage t={t.moodboard} />
 }

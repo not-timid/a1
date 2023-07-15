@@ -703,6 +703,121 @@ much bigger, if many/complex icons are used throughout the app.
 
 There may be a more slimline solution but the Carbon React icons are ok for now.
 
+### __Parse the ID from the route__
+
+Every Moodboard, Floorplan and Visual will have a unique identifier. These
+unique IDs can be parsed from the URL, for example:
+- /a1/en/visual/?/60142/
+- /a1/es/visualizacion/?/60142/
+
+Next.js commonly runs on a Node server, where it could parse the ID 60142 from a
+URL like /a1/en/visual/60142/ to dynamically generate the correct page response.  
+But this app will be statically exported and served by GitHub Pages (effectively
+a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
+
+1. At this point it would be useful to differentiate between the home page and
+   the three creative pages. Update src/locales/locale-schema.d.ts to this:
+   ```ts
+   export interface HomePageI {
+     /** Introductory text, welcoming the user to the app. */
+     intro: string;
+     title: string;
+   }
+   export interface PopupI {
+     route: string;
+     title: string;
+   }
+   export interface CreativePageI {
+     /** Introductory text, shown when no ID is present. */
+     intro: string;
+     route: string;
+     title: string;
+   }
+   export default interface LocaleI {
+     /** Two-character language code, eg 'pt' for Portuguese. */
+     code: string;
+     /** The content for `<meta name="description" ...>` in the `<head>`. */
+     description: string;
+     floorplan: CreativePageI;
+     home: HomePageI;
+     moodboard: CreativePageI;
+     profile: PopupI;
+     visual: CreativePageI;
+   }
+   ```
+   Note that `PopupI` and `profile` will not be needed until later - see
+   [Parse the popup from the route,](#parse-the-popup-from-the-route) below
+2. Rename `Locale` to `LocaleI` in all the src/ files
+3. Update src/locales/en.ts and es.ts by removing `home.route` and adding:  
+   `profile: { route: 'perfil', title: 'Perfil' },`
+4. The dynamic `?/` will look more like a regular URL if the 'real' routes have
+   a trailing slash. In next.config.js add:
+   `trailingSlash: true,`
+5. `mkdir touch src/lib/query && touch src/lib/query/get-id-from-query.ts`
+   and paste in:
+   ```ts
+   import { ReadonlyURLSearchParams } from 'next/navigation'
+   export default function getIdFromQuery(query : ReadonlyURLSearchParams) {
+     const id = query.toString()
+       .match(/\d{5,}/) // the ID is the first 5 (or more) digit integer
+     return id && Number(id[0])
+   }
+   ```
+6. `mkdir src/components/pages && touch src/components/pages/creative-page.tsx`
+   and paste in:
+   ```tsx
+   import { Suspense } from 'react'
+   import { CreativePageI } from '../../locales/locale-schema'
+   import CreativePageClient, { CreativePageFallback } from './creative-page-client'
+   
+   export default function CreativePage({ t }: { t: CreativePageI }) {
+     return (
+       <Suspense fallback={<CreativePageFallback />}>
+         <CreativePageClient t={t} />
+       </Suspense>
+     )
+   }
+   ```
+   This provides a 'Suspense boundary', where `<CreativePageClient>` will be
+   rendered by the browser, not baked into the static .html files.
+7. `touch src/components/pages/creative-page-client.tsx` and paste in:
+   ```tsx
+   'use client'
+   import { useSearchParams } from 'next/navigation'
+   import { CreativePageI } from '../../locales/locale-schema'
+   import getIdFromQuery from '../../lib/query/get-id-from-query'
+   
+   export default function CreativePageClient({ t }: { t: CreativePageI }) {
+     const id = getIdFromQuery(useSearchParams());
+     return (<>
+       <h1 className="font-serif">{t.title}</h1>
+       <p>{id ? id : t.intro}</p>
+     </>)
+   }
+   
+   // Passed as a fallback to the Suspense boundary. Will be rendered in the
+   // initial HTML, until the value is available during React hydration, when
+   // it will be replaced with `<CreativePageClient>`.
+   export function CreativePageFallback() { return <>...</> }
+   ```
+8. The six 'creative' page.tsx files can now be simplified, eg:
+   ```tsx
+   // src/app/(english)/en/floorplan/page.tsx
+   import t from '../../../../locales/en'
+   import CreativePage from '../../../../components/pages/creative-page'
+   export default function FloorplanEn() {
+     return <CreativePage t={t.floorplan} />
+   }
+   ```
+9. `npm run bas` and check that the following routes work as expected (you may
+   see a flash of '...' between requests, which shows that the fallback works)
+   - /a1/es - should automatically redirect to /a1/es/
+   - /a1/es/plano/ - should show 'Plano' and 'Consectetur' on two lines
+   - /a1/es/plano/60142/ - should show the 404 page
+   - /a1/es/plano/?/60142/ - should show 'Plano' and '60142' on two lines
+   - /a1/es/plano?60142 - should show the same - the '/'s are optional
+   - /a1/es/plano/?/1234/ - should show the 'Consectetur' page (only 4 digits)
+10. Control-C to stop `npm run bas` and rename a1/ back to docs/
 
 
 <!-- 255,924,531 bytes (326.7 MB on disk) for 24,448 items -->
