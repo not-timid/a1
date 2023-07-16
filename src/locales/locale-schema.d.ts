@@ -5,6 +5,7 @@ export interface HomePageI {
 }
 export interface PopupI {
   route: string;
+  /** Used as a tooltip when hovering over the link icon */
   title: string;
 }
 export interface CreativePageI {

@@ -724,6 +724,7 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
      title: string;
    }
    export interface PopupI {
+     /** Used as a tooltip when hovering over the link icon */
      route: string;
      title: string;
    }
@@ -745,21 +746,24 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
      visual: CreativePageI;
    }
    ```
-   Note that `PopupI` and `profile` will not be needed until later - see
+2. Update src/locales/en.ts and es.ts by removing `home.route` and adding:  
+   `profile: { route: 'perfil', title: 'Perfil' },`  
+   Note that `profile` and `PopupI` will not be needed until later - see
    [Parse the popup from the route,](#parse-the-popup-from-the-route) below
-2. Rename `Locale` to `LocaleI` in all the src/ files
-3. Update src/locales/en.ts and es.ts by removing `home.route` and adding:  
-   `profile: { route: 'perfil', title: 'Perfil' },`
+3. Rename `Locale` to `LocaleI` in all the src/ files
 4. The dynamic `?/` will look more like a regular URL if the 'real' routes have
-   a trailing slash. In next.config.js add:
-   `trailingSlash: true,`
+   a trailing slash. In next.config.js add:  
+   `trailingSlash: true,`  
+   Note that a page in docs/ which was previously en/foo-bar.html, will now be
+   en/foo-bar/index.html (with an accompanying index.txt file). This is actually
+   more widely supported by static servers - for example the NPM module
+   `static-server` will now serve the app correctly.
 5. `mkdir touch src/lib/query && touch src/lib/query/get-id-from-query.ts`
    and paste in:
    ```ts
-   import { ReadonlyURLSearchParams } from 'next/navigation'
-   export default function getIdFromQuery(query : ReadonlyURLSearchParams) {
+   export default function getIdFromQuery(query: string) {
      const id = query.toString()
-       .match(/\d{5,}/) // the ID is the first 5 (or more) digit integer
+       .match(/\d{5,}/) // the ID is the first 5+ digit integer
      return id && Number(id[0])
    }
    ```
@@ -788,7 +792,7 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
    import getIdFromQuery from '../../lib/query/get-id-from-query'
    
    export default function CreativePageClient({ t }: { t: CreativePageI }) {
-     const id = getIdFromQuery(useSearchParams());
+     const id = getIdFromQuery(useSearchParams().toString())
      return (<>
        <h1 className="font-serif">{t.title}</h1>
        <p>{id ? id : t.intro}</p>
@@ -818,6 +822,147 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
    - /a1/es/plano?60142 - should show the same - the '/'s are optional
    - /a1/es/plano/?/1234/ - should show the 'Consectetur' page (only 4 digits)
 10. Control-C to stop `npm run bas` and rename a1/ back to docs/
+
+### __Parse the popup from the route__
+
+Popups (which are often 'modals') should be [accessible as unique routes.
+](https://www.bennadel.com/blog/3620-most-of-your-modal-windows-should-be-directly-accessible-by-route-in-angular-7-2-15.htm)
+
+Currently the app has four pages, multiplied by two languages. If popups were
+implemented as static exported routes like this:
+- /a1/en/profile/
+- /a1/en/visual/profile/
+- /a1/en/visual/profile/?/60142/
+
+...then the number of exported .html and .txt pages would multiply by the
+number of possible popups, so that adding a new language might add several dozen
+files to the build.
+
+The query string system introduced in [the previous step
+](#parse-the-id-from-the-route) can prevent that kind of duplication, eg:
+- /a1/en/?/profile/
+- /a1/en/visual/?/profile/
+- /a1/en/visual/?/60142/profile/ (more natural than /profile/?/60142/)
+
+1. `touch src/lib/query/query-has-segment.ts` and paste in:
+   ```ts
+   export default function queryHasSegment(query: string, segment: string) {
+     return query.endsWith(`%2F${segment}=`) || query.includes(`%2F${segment}%2F`)
+   }
+   ```
+2. `touch src/lib/query/query-popup-link.ts` and paste in:
+   ```ts
+   export default function queryPopupLink(query: string, segment: string) {
+     let q = query.replace(/%2F/g, '/') // '%2F12345%2F=' -> '/12345/='
+     q = q.slice(-1) === '=' ? q.slice(0, -1) : q // remove trailing '='
+     const id = q.match(/\d{5,}/) // the ID is the first 5+ digit integer
+     return `?/${id ? id+'/' : ''}${segment}/`
+   }
+   ```
+3. `touch src/lib/query/index.ts` and paste in:
+   ```ts
+   export { default as getIdFromQuery } from './get-id-from-query'
+   export { default as queryHasSegment } from './query-has-segment'
+   export { default as queryPopupLink } from './query-popup-link'
+   ```
+   ...and now src/components/pages/creative-page-client.tsx can use:  
+   `import { getIdFromQuery } from '../../lib/query'`
+4. `mkdir src/components/popups && touch src/components/popups/popup-icon.tsx`
+   and paste in:
+   ```tsx
+   import { CarbonIconType } from '@carbon/icons-react'
+   import Link from 'next/link'
+   import { PopupI } from '../../locales/locale-schema'
+   
+   export default function PopupIcon(
+     { t, Icon, href }:
+     { t: PopupI, Icon: CarbonIconType, href: string | false }
+   ) {
+     const outer = 'inline-block mx-3'
+     return href ?
+       <Link href={href} className={outer} title={t.title}>
+         <Icon size="24" className="text-lemon-400 hover:text-lemon-100" />
+       </Link> :
+       <span className={outer}>
+         <Icon size="24" className="text-lemon-600" />
+       </span>
+   }
+   ```
+5. `touch src/components/pages/profile-popup-client.tsx` and paste in:
+   ```tsx
+   'use client'   
+   import { UserAvatar } from '@carbon/icons-react'
+   import { useSearchParams } from 'next/navigation'
+   import { queryHasSegment, queryPopupLink } from '../../lib/query'
+   import { PopupI } from '../../locales/locale-schema'
+   import PopupIcon from './popup-icon'
+   
+   export default function ProfilePopupClient({ t }: { t: PopupI }) {
+     const query = useSearchParams().toString()
+     const isActive = queryHasSegment(query, t.route)
+     const href = !isActive && queryPopupLink(query, t.route)
+     return (<>
+       <PopupIcon t={t} Icon={UserAvatar} href={href} />
+     </>)
+   }
+   
+   // Passed as a fallback to the Suspense boundary. Will be rendered in the
+   // initial HTML, until the value is available during React hydration, when
+   // it will be replaced with `<ProfilePopupClient>`.
+   export function ProfilePopupFallback() { return <> &nbsp; ...</> }
+   ```
+5. `touch src/components/popups/profile-popup.tsx` and paste in:
+   ```tsx
+   import { Suspense } from 'react'
+   import { PopupI } from '../../locales/locale-schema'
+   import ProfilePopupClient, { ProfilePopupFallback } from './profile-popup-client'
+   
+   export default function ProfilePopup({ t }: { t: PopupI }) {
+     return (
+       <Suspense fallback={<ProfilePopupFallback />}>
+         <ProfilePopupClient t={t} />
+       </Suspense>
+     )
+   }
+   ```
+   From [the Next.js useSearchParams docs,
+   ](https://nextjs.org/docs/app/api-reference/functions/use-search-params#static-rendering)
+   we can maximise the amount of static rendering by placing a 'Suspense' boundary
+   just above the Profile icon.
+6. `touch src/components/popups/index.ts` and just export the externally useful
+   popup component:
+   ```tsx
+   export { default as ProfilePopup } from './profile-popup'
+   ```
+7. In src/components/header.tsx, replace:  
+   `import { UserAvatar } from '@carbon/icons-react'`  
+   with:  
+   `import { ProfilePopup } from './popups'`
+8. And replace:  
+   `<UserAvatar size="24" style={{ ... }} />`  
+   with:  
+   `<ProfilePopup t={t.profile} />`
+8. `npm run bas` and check that the following works as expected (the flash
+   of '...' before the Profile icon appears shows that the fallback works)
+   - The /a1/es/ route should show the Profile icon, the same colour as the text
+   - Hovering over the icon should show the lighter colour, and 'Perfil' tooltip
+   - Clicking it should navigate to /a1/es/?/perfil/
+   - The icon should now be darker, unhoverable, and show no tooltip
+   - Clicking 'Plano' should navigate to /a1/es/plano/
+   - The icon should be hoverable again
+   - Manually appending ?/12345/ to the route should show '12345' in the content
+   - Clicking the icon should navigate to /a1/es/plano/?/12345/perfil/
+   - The content should still show '12345', while the icon is unhoverable again
+9. Control-C to stop `npm run bas` and rename a1/ back to docs/
+10. In VS Code, Command-Shift-F to multi-file search for 'xMidYMid' - you should
+    now see that the SVG data is only duplicated in 2 places in 1 file (one of
+    the static chunks). Moving the icon into a `'use client'` component, below a
+    Suspense boundary has made this Carbon React icon much slimmer in the build.
+
+<!-- ### __Turn the Header into a CSS table__
+
+1. Remove the `aside ...` line from src/app/globals.css
+2.  -->
 
 
 <!-- 255,924,531 bytes (326.7 MB on disk) for 24,448 items -->
