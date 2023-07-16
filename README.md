@@ -767,24 +767,8 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
      return id && Number(id[0])
    }
    ```
-6. `mkdir src/components/pages && touch src/components/pages/creative-page.tsx`
+6. `mkdir src/components/pages && touch src/components/pages/creative-page-client.tsx`
    and paste in:
-   ```tsx
-   import { Suspense } from 'react'
-   import { CreativePageI } from '../../locales/locale-schema'
-   import CreativePageClient, { CreativePageFallback } from './creative-page-client'
-   
-   export default function CreativePage({ t }: { t: CreativePageI }) {
-     return (
-       <Suspense fallback={<CreativePageFallback />}>
-         <CreativePageClient t={t} />
-       </Suspense>
-     )
-   }
-   ```
-   This provides a 'Suspense boundary', where `<CreativePageClient>` will be
-   rendered by the browser, not baked into the static .html files.
-7. `touch src/components/pages/creative-page-client.tsx` and paste in:
    ```tsx
    'use client'
    import { useSearchParams } from 'next/navigation'
@@ -804,6 +788,22 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
    // it will be replaced with `<CreativePageClient>`.
    export function CreativePageFallback() { return <>...</> }
    ```
+7. `touch src/components/pages/creative-page.tsx` and paste in:
+   ```tsx
+   import { Suspense } from 'react'
+   import { CreativePageI } from '../../locales/locale-schema'
+   import CreativePageClient, { CreativePageFallback } from './creative-page-client'
+   
+   export default function CreativePage({ t }: { t: CreativePageI }) {
+     return (
+       <Suspense fallback={<CreativePageFallback />}>
+         <CreativePageClient t={t} />
+       </Suspense>
+     )
+   }
+   ```
+   This provides a 'Suspense boundary', where `<CreativePageClient>` will be
+   rendered by the browser, not baked into the static .html files.
 8. The six 'creative' page.tsx files can now be simplified, eg:
    ```tsx
    // src/app/(english)/en/floorplan/page.tsx
@@ -875,17 +875,24 @@ The query string system introduced in [the previous step
    import { PopupI } from '../../locales/locale-schema'
    
    export default function PopupIcon(
-     { t, Icon, href }:
-     { t: PopupI, Icon: CarbonIconType, href: string | false }
+     { t, href, Icon }:
+     { t: PopupI, href: string | false, Icon: CarbonIconType }
    ) {
      const outer = 'inline-block mx-3'
      return href ?
        <Link href={href} className={outer} title={t.title}>
-         <Icon size="24" className="text-lemon-400 hover:text-lemon-100" />
+         <Icon size="24" className="hover:text-lemon-100" />
        </Link> :
        <span className={outer}>
          <Icon size="24" className="text-lemon-600" />
        </span>
+   }
+   
+   export function PopupIconFallback({ rounded }: { rounded: 'full' | 'none' }) {
+     const outer = 'inline-block mx-3 my-[1.5px] px-[1.5px]'
+     let inner = 'w-[21px] h-[21px] border-dashed border-[1.5px] border-lemon-400'
+     if (rounded === 'full') inner += ' rounded-full'
+     return <span className={outer}><div className={inner} /></span>
    }
    ```
 5. `touch src/components/pages/profile-popup-client.tsx` and paste in:
@@ -909,7 +916,9 @@ The query string system introduced in [the previous step
    // Passed as a fallback to the Suspense boundary. Will be rendered in the
    // initial HTML, until the value is available during React hydration, when
    // it will be replaced with `<ProfilePopupClient>`.
-   export function ProfilePopupFallback() { return <> &nbsp; ...</> }
+   export function ProfilePopupFallback() {
+     return <PopupIconFallback rounded="full" />
+   }
    ```
 5. `touch src/components/popups/profile-popup.tsx` and paste in:
    ```tsx
@@ -927,10 +936,10 @@ The query string system introduced in [the previous step
    ```
    From [the Next.js useSearchParams docs,
    ](https://nextjs.org/docs/app/api-reference/functions/use-search-params#static-rendering)
-   we can maximise the amount of static rendering by placing a 'Suspense' boundary
-   just above the Profile icon.
-6. `touch src/components/popups/index.ts` and just export the externally useful
-   popup component:
+   the amount of static rendering can be maximised by placing a 'Suspense'
+   boundary just above the Profile icon.
+6. `touch src/components/popups/index.ts` and export the popup component  
+   (ProfilePopupClient and ProfilePopup don't need to be exported here)
    ```tsx
    export { default as ProfilePopup } from './profile-popup'
    ```
@@ -942,8 +951,8 @@ The query string system introduced in [the previous step
    `<UserAvatar size="24" style={{ ... }} />`  
    with:  
    `<ProfilePopup t={t.profile} />`
-8. `npm run bas` and check that the following works as expected (the flash
-   of '...' before the Profile icon appears shows that the fallback works)
+8. `npm run bas` and check that the following works as expected (the momentary
+   dashed circle before the Profile icon appears shows that the fallback works)
    - The /a1/es/ route should show the Profile icon, the same colour as the text
    - Hovering over the icon should show the lighter colour, and 'Perfil' tooltip
    - Clicking it should navigate to /a1/es/?/perfil/
