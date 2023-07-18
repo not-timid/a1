@@ -126,12 +126,12 @@ Follow the ['Install' section of the Next.js Tailwind CSS docs:
    and also [adding `"*.css": "tailwindcss"` to `"files.associations"`
    ](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss#recommended-vs-code-settings)
 6. `npm run dev` and visit <http://localhost:3000/a1>, where you should see that
-   Tailwind has made the &lt;H1> and &lt;H2> text the same size, and smaller
+   Tailwind has made the `<h1>` and `<h2>` text the same size, and smaller
 7. In src/app/page.tsx change `<h1>NOT-TIMID</h1>` to:  
    ```html
    <h1 className="text-3xl font-bold underline">NOT-TIMID</h1>
    ```
-8. You should see that the classes have been applied to the &lt;H1> element
+8. You should see that the classes have been applied to the `<h1>` element
 9. In Terminal, Control-C to stop `npm run dev`
 
 #### __Notes on trying (and failing) to install Semantic UI__
@@ -140,14 +140,13 @@ Before trying Tailwind, I first tried to follow the steps in
 [part 1 of this Semantic UI with custom theming article,
 ](https://annacoding.com/article/6FndBILqMD16Bp7w95WJrd) but it
 threw some nasty Webpack errors.
-`npm install semantic-ui-less @zeit/next-less` would add 521 packages:
+`npm install semantic-ui-less @zeit/next-less` would add 521 packages,
 64 MB for 7166 items, 31 vulnerabilities (23 moderate, 6 high, 2 critical).
 
 Then I tried the ['Install' section of the React Semantic UI docs,
 ](https://react.semantic-ui.com/usage#install) but couldn't get it to work.
-`npm install semantic-ui-react semantic-ui-css` would add 16 packages:
-26 MB for 3936 items, the '5 moderate severity vulnerabilities' are from
-previously installed packages.
+`npm install semantic-ui-react semantic-ui-css` would add 16 packages,
+26 MB for 3936 items.
 
 ### __Modify the default Tailwind theme's colours__
 
@@ -181,7 +180,7 @@ section of the Tailwind 'Customizing Colors' docs:
      extend: {},
    },
    ```
-   Note that changes to tailwind.config.js should be hot-reloaded to the browser
+   You should see changes to tailwind.config.js hot-reloaded in the browser
 6. Extend the theme, with some custom colours:
    ```js
    theme: {
@@ -266,13 +265,13 @@ section of the Next.js 'Font Optimization' docs:
 9. In Terminal, Control-C to stop `npm run dev`
 
 __Optionally, check the .woff2 files__  
-After you have run `npm run build` and `npm serve`, use your browser's Network
-inspector to find the URLs of the two .woff2 font files. Visiting these URLs
-should download those files. You can then use an online service like
+After you `npm run build` and `npm serve`, use your browser's Network inspector
+to find the URLs of the two .woff2 font files. Visiting these URLs should
+download those files. You can then use an online service like
 <https://fontsee.com/> to check which glyphs are included. Don't forget to
 donate to FontSee on its Ko-fi page!
 
-### __Create a &lt;Header> component__
+### __Create a `<Header>` component__
 
 1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
 2. `mkdir src/components && touch src/components/header.tsx`
@@ -294,7 +293,9 @@ donate to FontSee on its Ko-fi page!
      )
    }
    ```
-   _Note that `<Link href="/">` would not work after `npm run build`_
+   _Note that `<Link href="/">` would not work after `npm run build`._  
+   ...But see [item 5. of Parse the ID from the route
+   ](#parse-the-id-from-the-route) below, which fixes that.
 4. Import it into src/app/layout.tsx
 5. The `Home()` function in src/app/page.tsx can now be simplified
 6. Clicking on the new links should currently show a
@@ -758,7 +759,12 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
    en/foo-bar/index.html (with an accompanying index.txt file). This is actually
    more widely supported by static servers - for example the NPM module
    `static-server` will now serve the app correctly.
-5. `mkdir touch src/lib/query && touch src/lib/query/get-id-from-query.ts`
+5. Additionally, `<Link href="/">` should now work correctly.  
+   In src/components/header.tsx, replace:  
+   `<aside><code>/a1</code></aside>`  
+   with:  
+   `<aside><Link href="/"><code>/a1/</code></Link></aside>`
+6. `mkdir touch src/lib/query && touch src/lib/query/get-id-from-query.ts`
    and paste in:
    ```ts
    export default function getIdFromQuery(query: string) {
@@ -767,7 +773,7 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
      return id && Number(id[0])
    }
    ```
-6. `mkdir src/components/pages && touch src/components/pages/creative-page-client.tsx`
+7. `mkdir src/components/pages && touch src/components/pages/creative-page-client.tsx`
    and paste in:
    ```tsx
    'use client'
@@ -788,7 +794,7 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
    // it will be replaced with `<CreativePageClient>`.
    export function CreativePageFallback() { return <>...</> }
    ```
-7. `touch src/components/pages/creative-page.tsx` and paste in:
+8. `touch src/components/pages/creative-page.tsx` and paste in:
    ```tsx
    import { Suspense } from 'react'
    import { CreativePageI } from '../../locales/locale-schema'
@@ -804,7 +810,7 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
    ```
    This provides a 'Suspense boundary', where `<CreativePageClient>` will be
    rendered by the browser, not baked into the static .html files.
-8. The six 'creative' page.tsx files can now be simplified, eg:
+9. The six 'creative' page.tsx files can now be simplified, eg:
    ```tsx
    // src/app/(english)/en/floorplan/page.tsx
    import t from '../../../../locales/en'
@@ -813,15 +819,16 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
      return <CreativePage t={t.floorplan} />
    }
    ```
-9. `npm run bas` and check that the following routes work as expected (you may
-   see a flash of '...' between requests, which shows that the fallback works)
-   - /a1/es - should automatically redirect to /a1/es/
-   - /a1/es/plano/ - should show 'Plano' and 'Consectetur' on two lines
-   - /a1/es/plano/60142/ - should show the 404 page
-   - /a1/es/plano/?/60142/ - should show 'Plano' and '60142' on two lines
-   - /a1/es/plano?60142 - should show the same - the '/'s are optional
-   - /a1/es/plano/?/1234/ - should show the 'Consectetur' page (only 4 digits)
-10. Control-C to stop `npm run bas` and rename a1/ back to docs/
+10. `npm run bas` and check that the following routes work as expected (you may
+    see a flash of '...' between requests, which shows that the fallback works)
+    - /a1 - should automatically redirect to /a1/
+    - /a1/es - should automatically redirect to /a1/es/
+    - /a1/es/plano/ - should show 'Plano' and 'Consectetur' on two lines
+    - /a1/es/plano/60142/ - should show the 404 page
+    - /a1/es/plano/?/60142/ - should show 'Plano' and '60142' on two lines
+    - /a1/es/plano?60142 - should show the same - the '/'s are optional
+    - /a1/es/plano/?/1234/ - should show the 'Consectetur' page (only 4 digits)
+11. Control-C to stop `npm run bas` and rename a1/ back to docs/
 
 ### __Parse the popup from the route__
 
@@ -968,7 +975,46 @@ The query string system introduced in [the previous step
     the static chunks). Moving the icon into a `'use client'` component, below a
     Suspense boundary has made this Carbon React icon much slimmer in the build.
 
-<!-- ### __Turn the Header into a CSS table__
+### __Display a basic popup panel__
+
+1. In src/lib/class-name-latin.ts, add `p-5 pt-12 ` before
+   `${albert.variable} ...`
+2. In src/components/header.tsx, add `fixed top-0 inset-x-0 z-10 ` before
+   `px-2 py-1 ...`
+3. `touch src/components/popups/popup-panel.tsx` and paste in:
+   ```tsx
+   import { useEffect, useState } from 'react'
+   import { createPortal } from 'react-dom'
+   
+   export default function PopupPanel(
+     { children, hidden }:
+     { children: React.ReactNode, hidden: boolean }
+   ) {
+     const [mounted, setMounted] = useState(false)
+     useEffect(() => setMounted(true), [])
+     let wrap = 'fixed flex inset-x-0 inset-y-0 py-12 justify-center bg-black/70'
+     wrap += hidden ? ' hidden' : ''
+     let box = 'w-[300px] p-3 bg-grey-400 text-grey-800 rounded'
+     const el = <div className={wrap}><div className={box}>{children}</div></div>
+     return mounted ? createPortal(el, document.body) : null
+   }
+   ```
+4. In src/components/popup/profile-popup-client.tsx, add:  
+   `import PopupPanel from './popup-panel'` at the top, and  
+   `<PopupPanel hidden={!!href}>{t.title}</PopupPanel>` after `<PopupIcon ... />`
+5. `npm run bas` and check that the popup appears in the correct language when
+   the Profile icon is clicked
+6. Control-C to stop `npm run bas` and rename a1/ back to docs/
+
+<!-- ### __Hide the popup panel when the Close button is clicked__
+
+1. -->
+
+<!-- ### __Add the navigation popup__
+
+1. -->
+
+<!-- ### __Add the settings popup__
 
 1. Remove the `aside ...` line from src/app/globals.css
 2.  -->

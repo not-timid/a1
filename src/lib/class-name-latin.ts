@@ -7,7 +7,7 @@ const zilla = Zilla_Slab({
   display:'swap', subsets:['latin'], variable:'--font-zilla', weight:'500' })
 
 const classNameLatin = `
-  ${albert.variable} ${zilla.variable} font-sans
+  p-5 pt-12 ${albert.variable} ${zilla.variable} font-sans
   bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
 
 export default classNameLatin

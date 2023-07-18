@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { queryHasSegment, queryPopupLink } from '../../lib/query'
 import { PopupI } from '../../locales/locale-schema'
 import PopupIcon, { PopupIconFallback } from './popup-icon'
+import PopupPanel from './popup-panel'
 
 export default function ProfilePopupClient({ t }: { t: PopupI }) {
   const query = useSearchParams().toString()
@@ -12,6 +13,7 @@ export default function ProfilePopupClient({ t }: { t: PopupI }) {
   const href = !isActive && queryPopupLink(query, t.route)
   return (<>
     <PopupIcon t={t} href={href} Icon={UserAvatar} />
+    <PopupPanel hidden={!!href}>{t.title}</PopupPanel>
   </>)
 }
 
