@@ -857,9 +857,9 @@ The query string system introduced in [the previous step
      return query.endsWith(`%2F${segment}=`) || query.includes(`%2F${segment}%2F`)
    }
    ```
-2. `touch src/lib/query/query-popup-link.ts` and paste in:
+2. `touch src/lib/query/popup-open-href.ts` and paste in:
    ```ts
-   export default function queryPopupLink(query: string, segment: string) {
+   export default function popupOpenHref(query: string, segment: string) {
      let q = query.replace(/%2F/g, '/') // '%2F12345%2F=' -> '/12345/='
      q = q.slice(-1) === '=' ? q.slice(0, -1) : q // remove trailing '='
      const id = q.match(/\d{5,}/) // the ID is the first 5+ digit integer
@@ -869,8 +869,8 @@ The query string system introduced in [the previous step
 3. `touch src/lib/query/index.ts` and paste in:
    ```ts
    export { default as getIdFromQuery } from './get-id-from-query'
+   export { default as popupOpenHref } from './popup-open-href'
    export { default as queryHasSegment } from './query-has-segment'
-   export { default as queryPopupLink } from './query-popup-link'
    ```
    ...and now src/components/pages/creative-page-client.tsx can use:  
    `import { getIdFromQuery } from '../../lib/query'`
@@ -882,8 +882,8 @@ The query string system introduced in [the previous step
    import { PopupI } from '../../locales/locale-schema'
    
    export default function PopupIcon(
-     { t, href, Icon }:
-     { t: PopupI, href: string | false, Icon: CarbonIconType }
+     { href, Icon, t }:
+     { href: string | false, Icon: CarbonIconType, t: PopupI }
    ) {
      const outer = 'inline-block mx-3'
      return href ?
@@ -907,16 +907,16 @@ The query string system introduced in [the previous step
    'use client'   
    import { UserAvatar } from '@carbon/icons-react'
    import { useSearchParams } from 'next/navigation'
-   import { queryHasSegment, queryPopupLink } from '../../lib/query'
+   import { popupOpenHref, queryHasSegment } from '../../lib/query'
    import { PopupI } from '../../locales/locale-schema'
    import PopupIcon from './popup-icon'
    
    export default function ProfilePopupClient({ t }: { t: PopupI }) {
      const query = useSearchParams().toString()
      const isActive = queryHasSegment(query, t.route)
-     const href = !isActive && queryPopupLink(query, t.route)
+     const openHref = !isActive && popupOpenHref(query, t.route)
      return (<>
-       <PopupIcon t={t} Icon={UserAvatar} href={href} />
+       <PopupIcon href={openHref} Icon={UserAvatar} t={t} />
      </>)
    }
    
@@ -1001,14 +1001,126 @@ The query string system introduced in [the previous step
    ```
 4. In src/components/popup/profile-popup-client.tsx, add:  
    `import PopupPanel from './popup-panel'` at the top, and  
-   `<PopupPanel hidden={!!href}>{t.title}</PopupPanel>` after `<PopupIcon ... />`
+   `<PopupPanel hidden={!isActive}>{t.title}</PopupPanel>` after
+   `<PopupIcon ... />`
 5. `npm run bas` and check that the popup appears in the correct language when
    the Profile icon is clicked
 6. Control-C to stop `npm run bas` and rename a1/ back to docs/
 
-<!-- ### __Hide the popup panel when the Close button is clicked__
+### __Allow the popup panel to be hidden__
 
-1. -->
+This step hides the popup panel when:
+- The Close button is clicked
+- The main area of screen outside the panel is clicked
+- The Escape key is pressed
+
+1. But first, store some common Tailwind class names in a new file.  
+   `touch src/lib/theme.ts` and paste in:
+   ```ts
+   export const bar = ' border-b-2 ' + // 2px bottom border
+     'bg-lemon dark:bg-grey-800 text-lemon-900 dark:text-lemon'
+   
+   export const barIconLink = ' rounded-sm transition-colors ' +
+     'hover:bg-lemon-800 dark:hover:bg-lemon ' +
+     'hover:text-lemon dark:hover:text-black'
+   
+   export const panel = ' rounded ' +
+     'bg-grey-200 dark:bg-grey-800 text-grey-900 dark:text-grey-200'
+   ```
+2. `touch src/lib/query/popup-close-href.ts` and paste in:
+   ```ts
+   export default function popupCloseHref(query: string) {
+     let q = query.replace(/%2F/g, '/') // '%2F12345%2F=' -> '/12345/='
+     q = q.slice(-1) === '=' ? q.slice(0, -1) : q // remove trailing '='
+     const id = q.match(/\d{5,}/) // the ID is the first 5+ digit integer
+     return id ? `?/${id}/` : './'
+   }
+   ```
+3. Add an export to src/lib/query/index.ts:  
+   `export { default as popupCloseHref } from './popup-close-href'`
+4. In src/components/header.tsx, add:  
+   `import { bar } from '../lib/theme'`  
+   and change the opening `<nav ...` tag to:  
+   `<nav className={'fixed top-0 inset-x-0 z-10 px-2 pt-1' + bar}>`
+5. In src/components/popups/popup-icon.tsx, add:  
+   `import { barIconLink } from '../../lib/theme'`  
+   and change the body of `PopupIcon()` to:
+   ```tsx
+   const outer = 'inline-block mx-3'
+   const active = 'p-[4px]' + barIconLink
+   const inactive = 'p-[4px] text-lemon-600 dark:text-lemon-800'
+   return href ?
+     <Link href={href} className={outer} title={t.title}>
+       <Icon size="32" className={active} />
+     </Link> :
+     <span className={outer}>
+       <Icon size="32" className={inactive} />
+     </span>
+   ```
+6. Change src/components/popups/popup-panel.tsx to:
+   ```tsx
+   import { CarbonIconType, Close } from '@carbon/icons-react'
+   import { MouseEventHandler, useCallback, useEffect, useState } from 'react'
+   import { createPortal } from 'react-dom'
+   import Link from 'next/link'
+   import { useRouter } from 'next/navigation'
+   import { bar, barIconLink, panel } from '../../lib/theme'
+   import { PopupI } from '../../locales/locale-schema'
+   
+   export default function PopupPanel(
+     { children, xHid, Icon, t }: // xHid is the Close href, or '' hides the panel
+     { children: React.ReactNode, xHid: string, Icon: CarbonIconType, t: PopupI }
+   ) {
+     const [mounted, setMounted] = useState(false)
+     useEffect(() => setMounted(true), [])
+   
+     const router = useRouter()
+     const close = useCallback(() => router.push(xHid), [xHid, router])
+   
+     const onClose: MouseEventHandler =
+       evt => evt.target === evt.currentTarget && close()
+     const onKeydown = useCallback(
+       (evt: KeyboardEvent) => evt.key === 'Escape' && close(), [close])
+   
+     useEffect(() => {
+       document.addEventListener('keydown', onKeydown)
+       return () => document.removeEventListener('keydown', onKeydown)
+     }, [onKeydown])
+   
+     if (xHid === '') return null
+   
+     const wrap = 'fixed flex inset-x-0 inset-y-0 pt-16 pb-8 justify-center ' +
+       'bg-white/70 dark:bg-black/70'
+     const closeLink = 'float-right mt-[-2px]' + barIconLink
+   
+     const el = <div className={wrap} onClick={onClose}>
+       <div className={'w-[300px]' + panel}>
+         <div className={'p-2 pl-3' + bar}>
+           <Icon size="24" className="inline-block -mt-2" />
+           <span className="text-xl uppercase tracking-wide">&nbsp;{t.title}</span>
+           <Link href={xHid} className={closeLink}><Close size="32" /></Link>
+         </div>
+         <div className="border-b-2 px-3 py-2">{children}</div>
+       </div>
+     </div>
+     return mounted ? createPortal(el, document.body) : null
+   }
+   ```
+7. In src/components/pages/profile-popup-client.tsx, import `popupCloseHref`
+   from `'../../lib/query'`
+8. Then define the `xHid` prop:  
+   `const xHid = isActive ? popupCloseHref(query) : ''`  
+   This (rather ambiguously named) prop serves two purposes:
+   - If non-empty it specifies the 'Close' href
+   - If empty it means that the PopupPanel should be hidden
+9. Finally, pass `xHid` to the PopupPanel, along with the icon for the top bar:  
+   `<PopupPanel xHid={xHid} Icon={UserAvatar} t={t}>@TODO</PopupPanel>`
+10. `npm run bas` and check that colours respond to system dark/light modes, and
+    that the popup panel can be dismissed by:
+    - Clicking the Close button
+    - Clicking the the main area of screen outside the panel
+    - Pressing the Escape key
+11. Control-C to stop `npm run bas` and rename a1/ back to docs/
 
 <!-- ### __Add the navigation popup__
 

@@ -1,18 +1,21 @@
 import { CarbonIconType } from '@carbon/icons-react'
 import Link from 'next/link'
 import { PopupI } from '../../locales/locale-schema'
+import { barIconLink } from '../../lib/theme'
 
 export default function PopupIcon(
-  { t, href, Icon }:
-  { t: PopupI, href: string | false, Icon: CarbonIconType }
+  { href, Icon, t }:
+  { href: string | false, Icon: CarbonIconType, t: PopupI }
 ) {
   const outer = 'inline-block mx-3'
+  const active = 'p-[4px]' + barIconLink
+  const inactive = 'p-[4px] text-lemon-600 dark:text-lemon-800'
   return href ?
     <Link href={href} className={outer} title={t.title}>
-      <Icon size="24" className="hover:text-lemon-100" />
+      <Icon size="32" className={active} />
     </Link> :
     <span className={outer}>
-      <Icon size="24" className="text-lemon-600" />
+      <Icon size="32" className={inactive} />
     </span>
 }
 
