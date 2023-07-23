@@ -14,7 +14,6 @@ export default function Header({ t }: { t: LocaleI }) {
       <Link href={`${base}/${t.floorplan.route}`}>{t.floorplan.title}</Link> &nbsp;
       <Link href={`${base}/${t.visual.route}`}>{t.visual.title}</Link>
       <ProfilePopup t={t.profile} />
-      <aside><Link href="/"><code>/a1/</code></Link></aside>
     </nav>
   )
 }

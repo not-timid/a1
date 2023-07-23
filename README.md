@@ -53,7 +53,14 @@ Clone the repository, and `cd` into it:
 `git clone https://github.com/not-timid/a1.git && cd a1`
 
 Install the dependencies:  
-`npm i`
+`npm i`  
+Which should install 341.7 MB into node_modules/ for 24,442 items:
+```
+added 348 packages, and audited 349 packages in 17s
+...
+2 moderate severity vulnerabilities
+...
+```
 
 Open the `a1` repo in VS Code:  
 `code .`
@@ -271,13 +278,32 @@ download those files. You can then use an online service like
 <https://fontsee.com/> to check which glyphs are included. Don't forget to
 donate to FontSee on its Ko-fi page!
 
+### __Create a `<Footer>` component__
+
+1. `mkdir src/components && touch src/components/footer.tsx`
+2. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+3. Delete the `aside` line from src/app/globals.css
+4. Export a default `Footer()` function, with some Tailwind styling:
+   ```tsx
+   import Link from 'next/link'
+   export default function Footer() {
+     return (
+       <aside className="fixed bottom-2 right-2 text-xs">
+         <Link href="/"><code>/a1/</code></Link>
+       </aside>
+     )
+   }
+   ```
+5. Import it into src/app/layout.tsx
+6. Clicking on the /a1/ footer link should work during `npm run dev` but fail
+   after `npm run build`. See [item 5. of Parse the ID from the route
+   ](#parse-the-id-from-the-route) below, which will fix that.
+7. In Terminal, Control-C to stop `npm run dev`
+
 ### __Create a `<Header>` component__
 
-1. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
-2. `mkdir src/components && touch src/components/header.tsx`
-3. Export a default `Header()` function, with some Tailwind styling:
+1. `touch src/components/header.tsx` and paste in:
    ```tsx
-   // src/components/header.tsx
    import Link from 'next/link'
    export default function Header() {
      return (
@@ -288,19 +314,16 @@ donate to FontSee on its Ko-fi page!
          <Link href="/en/moodboard">Moodboard</Link> &nbsp;
          <Link href="/en/floorplan">Floorplan</Link> &nbsp;
          <Link href="/en/visual">Visual</Link>
-         <aside><code>/a1</code></aside>
        </nav>
      )
    }
    ```
-   _Note that `<Link href="/">` would not work after `npm run build`._  
-   ...But see [item 5. of Parse the ID from the route
-   ](#parse-the-id-from-the-route) below, which fixes that.
-4. Import it into src/app/layout.tsx
-5. The `Home()` function in src/app/page.tsx can now be simplified
-6. Clicking on the new links should currently show a
+2. Import it into src/app/layout.tsx
+3. The `Home()` function in src/app/page.tsx can now be simplified
+4. In Terminal, `npm run dev` and visit <http://localhost:3000/a1>
+5. Clicking on the new links should currently show a
    [404 This page could not be found](http://localhost:3000/en/a1/visual) page
-7. In Terminal, Control-C to stop `npm run dev`
+6. In Terminal, Control-C to stop `npm run dev`
 
 __Why src/components/ not src/app/components/ ?__  
 From Next.js 13 onwards components in src/app/ are considered [server components
@@ -509,7 +532,6 @@ Secondly, it avoids `'use client'`, so that sub-layouts can update `<head>`.
          <Link href={`${base}/${t.moodboard.route}`}>{t.moodboard.title}</Link> &nbsp;
          <Link href={`${base}/${t.floorplan.route}`}>{t.floorplan.title}</Link> &nbsp;
          <Link href={`${base}/${t.visual.route}`}>{t.visual.title}</Link>
-         <aside><code>/a1</code></aside>
        </nav>
      )
    }
@@ -759,11 +781,7 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
    en/foo-bar/index.html (with an accompanying index.txt file). This is actually
    more widely supported by static servers - for example the NPM module
    `static-server` will now serve the app correctly.
-5. Additionally, `<Link href="/">` should now work correctly.  
-   In src/components/header.tsx, replace:  
-   `<aside><code>/a1</code></aside>`  
-   with:  
-   `<aside><Link href="/"><code>/a1/</code></Link></aside>`
+5. Additionally, the `<Link href="/">` in the Footer should now work correctly
 6. `mkdir touch src/lib/query && touch src/lib/query/get-id-from-query.ts`
    and paste in:
    ```ts
@@ -1121,15 +1139,3 @@ This step hides the popup panel when:
     - Clicking the the main area of screen outside the panel
     - Pressing the Escape key
 11. Control-C to stop `npm run bas` and rename a1/ back to docs/
-
-<!-- ### __Add the navigation popup__
-
-1. -->
-
-<!-- ### __Add the settings popup__
-
-1. Remove the `aside ...` line from src/app/globals.css
-2.  -->
-
-
-<!-- 255,924,531 bytes (326.7 MB on disk) for 24,448 items -->
