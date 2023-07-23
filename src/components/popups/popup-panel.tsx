@@ -3,7 +3,7 @@ import { MouseEventHandler, useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { bar, barIconLink, panel } from '../../lib/theme'
+import { bar, barIconActive, panel } from '../../lib/theme'
 import { PopupI } from '../../locales/locale-schema'
 
 export default function PopupPanel(
@@ -29,15 +29,15 @@ export default function PopupPanel(
   if (xHid === '') return null
 
   const wrap = 'fixed flex inset-x-0 inset-y-0 pt-16 pb-8 justify-center ' +
-    'bg-white/70 dark:bg-black/70'
-  const closeLink = 'float-right mt-[-2px]' + barIconLink
+    'bg-white/80 dark:bg-black/80'
+  const closeLink = 'float-right mt-[-2px]' + barIconActive
 
   const el = <div className={wrap} onClick={onClose}>
     <div className={'w-[300px]' + panel}>
       <div className={'p-2 pl-3' + bar}>
         <Icon size="24" className="inline-block -mt-2" />
         <span className="text-xl uppercase tracking-wide">&nbsp;{t.title}</span>
-        <Link href={xHid} className={closeLink}><Close size="32" /></Link>
+        <Link href={xHid} className={closeLink}><Close size="24" /></Link>
       </div>
       <div className="border-b-2 px-3 py-2">{children}</div>
     </div>

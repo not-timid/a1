@@ -359,7 +359,7 @@ replaces the old 'Pages Router'.
      display:'swap', subsets:['latin'], variable:'--font-zilla', weight:'500' })
    const className = `
      ${albert.variable} ${zilla.variable} font-sans
-     bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
+     bg-grey-100 dark:bg-grey-800 text-grey-800 dark:text-grey-300`
    
    export const metadata = {
      title: 'NOT-TIMID',
@@ -596,7 +596,7 @@ default language (see step 6., below).
    
    const classNameLatin = `
      ${albert.variable} ${zilla.variable} font-sans
-     bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
+     bg-grey-100 dark:bg-grey-800 text-grey-800 dark:text-grey-300`
    export default classNameLatin
    ```
 3. Next we'll need to move the files in src/app/ around, so `cd src/app`
@@ -1028,7 +1028,7 @@ This step hides the popup panel when:
    export const bar = ' border-b-2 ' + // 2px bottom border
      'bg-lemon dark:bg-grey-800 text-lemon-900 dark:text-lemon'
    
-   export const barIconLink = ' rounded-sm transition-colors ' +
+   export const barIconActive = ' rounded-sm transition-colors ' +
      'hover:bg-lemon-800 dark:hover:bg-lemon ' +
      'hover:text-lemon dark:hover:text-black'
    
@@ -1051,11 +1051,11 @@ This step hides the popup panel when:
    and change the opening `<nav ...` tag to:  
    `<nav className={'fixed top-0 inset-x-0 z-10 px-2 pt-1' + bar}>`
 5. In src/components/popups/popup-icon.tsx, add:  
-   `import { barIconLink } from '../../lib/theme'`  
+   `import { barIconActive } from '../../lib/theme'`  
    and change the body of `PopupIcon()` to:
    ```tsx
    const outer = 'inline-block mx-3'
-   const active = 'p-[4px]' + barIconLink
+   const active = 'p-[4px]' + barIconActive
    const inactive = 'p-[4px] text-lemon-600 dark:text-lemon-800'
    return href ?
      <Link href={href} className={outer} title={t.title}>
@@ -1072,7 +1072,7 @@ This step hides the popup panel when:
    import { createPortal } from 'react-dom'
    import Link from 'next/link'
    import { useRouter } from 'next/navigation'
-   import { bar, barIconLink, panel } from '../../lib/theme'
+   import { bar, barIconActive, panel } from '../../lib/theme'
    import { PopupI } from '../../locales/locale-schema'
    
    export default function PopupPanel(
@@ -1098,15 +1098,15 @@ This step hides the popup panel when:
      if (xHid === '') return null
    
      const wrap = 'fixed flex inset-x-0 inset-y-0 pt-16 pb-8 justify-center ' +
-       'bg-white/70 dark:bg-black/70'
-     const closeLink = 'float-right mt-[-2px]' + barIconLink
+       'bg-white/80 dark:bg-black/80'
+     const closeLink = 'float-right mt-[-2px]' + barIconActive
    
      const el = <div className={wrap} onClick={onClose}>
        <div className={'w-[300px]' + panel}>
          <div className={'p-2 pl-3' + bar}>
            <Icon size="24" className="inline-block -mt-2" />
            <span className="text-xl uppercase tracking-wide">&nbsp;{t.title}</span>
-           <Link href={xHid} className={closeLink}><Close size="32" /></Link>
+           <Link href={xHid} className={closeLink}><Close size="24" /></Link>
          </div>
          <div className="border-b-2 px-3 py-2">{children}</div>
        </div>
@@ -1129,3 +1129,176 @@ This step hides the popup panel when:
     - Clicking the the main area of screen outside the panel
     - Pressing the Escape key
 11. Control-C to stop `npm run bas` and rename a1/ back to docs/
+
+### __Style the Header's buttons and icons__
+
+This step turns the Header into a CSS table, with left and right cells. The
+right cell is ranged right and the left cell is ranged left, so buttons and icons
+gather at the edges of the screen.
+
+Additionally, this step makes Header buttons and icons inactive if they link to
+the current route.
+
+1. Update the current classnames in src/lib/theme.ts, and add a few more:
+   ```ts
+   // Header and Panel-top.
+   
+   export const bar =
+     ' p-2 bg-gradient-to-b ' +
+     ' from-grey-100 to-white text-grey-600 ' +
+     ' dark:from-grey-900 dark:to-black dark:text-lemon '
+   
+   // Panel.
+   
+   export const panel =
+     ' bg-grey-200 text-grey-900 ' +
+     ' dark:bg-grey-800 dark:text-grey-200 '
+   
+   // Shared by buttons and icons.
+   
+   const barCommonOuter =
+     ' inline-block align-top mx-1 '
+   
+   const barCommonOuterInactive =
+     ' pointer-events-none '
+   
+   const barCommonInner =
+     ' rounded-sm transition-colors ' +
+     ' border border-lemon-100/10 dark:border-lemon-900/10 ' +
+     ' bg-grey-100 dark:bg-grey-900 '
+   
+   const barCommonActive = barCommonInner +
+     ' hover:border-lemon hover:bg-lemon hover:text-black '
+   
+   const barCommonInactive =
+     ' border border-transparent ' +
+     ' text-grey-300 dark:text-lemon-700 '
+   
+   // Button.
+   
+   const barButton = ' px-3 py-[4px] leading-[22px] '
+   export const barButtonActive =
+     barCommonOuter + barButton + barCommonActive
+   export const barButtonInactive =
+     barCommonOuter + barButton + barCommonInactive + barCommonOuterInactive
+   
+   // Icon.
+   
+   export const barIconOuterActive = barCommonOuter
+   export const barIconOuterInactive = barCommonOuter + barCommonOuterInactive
+   
+   const barIcon = ' p-[4px] '
+   export const barIconActive = barIcon + barCommonInner + barCommonActive
+   export const barIconInactive = barIcon + barCommonInner + barCommonInactive
+   ```
+2. `cd src/components && mkdir header && touch header/index.tsx` and paste in:
+   ```tsx
+   import { Suspense } from 'react'
+   import { HeaderClient, HeaderFallback } from './header-client'
+   import LocaleI from '../../locales/locale-schema'
+   export default function Header({ t }: { t: LocaleI }) {
+     return (
+       <Suspense fallback={<HeaderFallback />}>
+         <HeaderClient t={t} />
+       </Suspense>
+     )
+   }
+   ```
+3. `touch header/header-button.tsx` and paste in:
+   ```tsx
+   import Link from 'next/link'
+   import { barButtonActive, barButtonInactive } from '../../lib/theme'
+   
+   export default function HeaderButton(
+     { href, p, q, text, title }:
+     { href: string, p: string, q: string, text: string, title: string }
+   ) {
+     const cn = q === '' && p === href ? barButtonInactive : barButtonActive
+     return <Link className={cn} href={href} title={title}>{text}</Link>
+   }
+   ```
+4. `mv header.tsx header/header-client.tsx` and replace its code with:
+   ```tsx
+   'use client'
+   
+   import { usePathname, useSearchParams } from 'next/navigation'
+   import HeaderButton from './header-button'
+   import LocaleI from '../../locales/locale-schema'
+   import { bar } from '../../lib/theme'
+   import SettingsPopup from '../popups/settings-popup'
+   
+   const outer = 'fixed table top-0 inset-x-0 w-full z-10 leading-[1px]'
+   
+   export function HeaderClient({ t }: { t: LocaleI }) {
+     const base = `/${t.code}/`
+     const p = usePathname().replace('/a1', '')
+     const query = useSearchParams().toString()
+     const q = query.replace(/^%2F=?/, '') // q = '', if query is '', '/' or '/='
+     
+     return (
+       <aside className={outer}>
+         <nav className={'table-cell' + bar}>
+           <HeaderButton href={base} p={p} q={q} text="NOT-TIMID" title="NOT-TIMID" />
+         </nav>
+         <nav className={'table-cell text-right' + bar}>
+           {[ t.moodboard, t.floorplan, t.visual ].map(({ route, title }) =>
+             <HeaderButton href={`${base}${route}/`}
+               p={p} q={q} key={title} text={title} title={title} />
+           )}
+           <SettingsPopup query={query} t={t.settings} />
+         </nav>
+       </aside>
+     )
+   }
+   
+   export function HeaderFallback() {
+     return <aside className={outer}>...</aside>
+   }
+   ```
+5. The Header component has become the new suspense boundary, so the old
+   SettingsPopup doesn't need to do that job any more. The code from
+   SettingsPopupClient can move into src/components/popups/settings-popup.tsx:
+   ```tsx
+   import { SettingsAdjust } from '@carbon/icons-react'
+   import { popupCloseHref, popupOpenHref, queryHasSegment } from '../../lib/query'
+   import { PopupI } from '../../locales/locale-schema'
+   import PopupIcon from './popup-icon'
+   import PopupPanel from './popup-panel'
+   
+   export default function SettingsPopup(
+     { query, t }:
+     { query: string, t: PopupI }
+   ) {
+     const popped = queryHasSegment(query, t.route)
+     const href = popupOpenHref(query, t.route)
+     const xHid = popped ? popupCloseHref(query) : ''
+     return (<>
+       <PopupIcon href={href} Icon={SettingsAdjust} isActive={!popped} title={t.title} />
+       <PopupPanel Icon={SettingsAdjust} t={t} xHid={xHid}>@TODO</PopupPanel>
+     </>)
+   }
+   ```
+6. Delete the old settings-popup-client.tsx file
+7. The PopupIconFallback component in src/components/popups/popup-icon.tsx can
+   be deleted. Also, a more CSS-transition-friendly system for making the icon
+   inactive when the panel pops up can be used:
+   ```tsx
+   import { CarbonIconType } from '@carbon/icons-react'
+   import Link from 'next/link'
+   import { barIconActive, barIconInactive, barIconOuterActive,
+     barIconOuterInactive } from '../../lib/theme'
+   
+   export default function PopupIcon(
+     { href, Icon, isActive, title }:
+     { href: string, Icon: CarbonIconType, isActive: boolean, title: string }
+   ) {
+     const outer = isActive ? barIconOuterActive : barIconOuterInactive
+     const inner = isActive ? barIconActive : barIconInactive
+     return (<Link className={outer} href={href} title={title}>
+       <Icon size="32" className={inner} />
+     </Link>)
+   }
+   ```
+8. `cd .. && npm run bas` to check that the Header buttons and icon look good
+   in dark and light modes - they should transition smoothly when hovered, and
+   also when they become inactive

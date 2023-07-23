@@ -8,6 +8,6 @@ const zilla = Zilla_Slab({
 
 const classNameLatin = `
   p-5 pt-12 ${albert.variable} ${zilla.variable} font-sans
-  bg-grey-200 dark:bg-grey-900 text-grey-800 dark:text-grey-300`
+  bg-grey-100 dark:bg-grey-800 text-grey-800 dark:text-grey-300`
 
 export default classNameLatin
