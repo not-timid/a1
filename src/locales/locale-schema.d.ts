@@ -22,6 +22,6 @@ export default interface LocaleI {
   floorplan: CreativePageI;
   home: HomePageI;
   moodboard: CreativePageI;
-  profile: PopupI;
+  settings: PopupI;
   visual: CreativePageI;
 }

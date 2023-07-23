@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import LocaleI from '../locales/locale-schema'
 import { bar } from '../lib/theme'
-import { ProfilePopup } from './popups'
+import SettingsPopup from './popups/settings-popup'
 
 export default function Header({ t }: { t: LocaleI }) {
   const base = `/${t.code}`
@@ -13,7 +13,7 @@ export default function Header({ t }: { t: LocaleI }) {
       <Link href={`${base}/${t.moodboard.route}`}>{t.moodboard.title}</Link> &nbsp;
       <Link href={`${base}/${t.floorplan.route}`}>{t.floorplan.title}</Link> &nbsp;
       <Link href={`${base}/${t.visual.route}`}>{t.visual.title}</Link>
-      <ProfilePopup t={t.profile} />
+      <SettingsPopup t={t.settings} />
     </nav>
   )
 }

@@ -1,1 +1,1 @@
-export { default as ProfilePopup } from './profile-popup'
+export { default as SettingsPopup } from './settings-popup'

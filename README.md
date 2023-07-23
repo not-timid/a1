@@ -691,9 +691,9 @@ Zilla slab typeface.
 3. Search for 'user avatar' on the [Carbon Icons search page,
    ](https://carbondesignsystem.com/guidelines/icons/library/) and click the
    `</>` icon under one of the results, to get the component name
-4. Add `import { UserAvatar } from '@carbon/icons-react'` to header.tsx
+4. Add `import { SettingsAdjust } from '@carbon/icons-react'` to header.tsx
 5. Inside the Header's `<nav>` element, add:  
-   `<UserAvatar size="24" style={{float:'right',marginRight:24,cursor:'pointer'}} />`
+   `<SettingsAdjust size="24" style={{float:'right',marginRight:24,cursor:'pointer'}} />`
 6. `npm run bas` and 'Inspect' the icon in the browser. You should see it is an
    inline SVG, containing various `<path>` elements:
    ```html
@@ -708,12 +708,7 @@ Zilla slab typeface.
      viewBox="0 0 32 32"
      aria-hidden="true"
    >
-     <path
-       d="M16,8a5,5,0,1,0,5,5A5,5,0,0,0,16,8Zm0,8a3,3,0,1,1,3-3A3 ... 1,16,16Z"
-     ></path>
-     <path
-       d="M16,2A14,14,0,1,0,30,16,14.0158,14.0158,0,0,0,16,2ZM10 ... ,15.985,0Z"
-     ></path>
+     <path d="M30 8h-4.1c-.5-2.3-2.5-4-4.9-4s-4.4 1.7-4.9 ... 20 11 20z"></path>
    </svg>
    ```
 7. In Terminal, Control-C to stop the server and rename a1/ back to docs/
@@ -765,13 +760,13 @@ a CDN), so an extra `?/` must be inserted before the dynamic parts of the URL.
      floorplan: CreativePageI;
      home: HomePageI;
      moodboard: CreativePageI;
-     profile: PopupI;
+     settings: PopupI;
      visual: CreativePageI;
    }
    ```
 2. Update src/locales/en.ts and es.ts by removing `home.route` and adding:  
-   `profile: { route: 'perfil', title: 'Perfil' },`  
-   Note that `profile` and `PopupI` will not be needed until later - see
+   `settings: { route: 'configuracion', title: 'Configuración' },`  
+   Note that `settings` and `PopupI` will not be needed until later - see
    [Parse the popup from the route,](#parse-the-popup-from-the-route) below
 3. Rename `Locale` to `LocaleI` in all the src/ files
 4. The dynamic `?/` will look more like a regular URL if the 'real' routes have
@@ -855,9 +850,9 @@ Popups (which are often 'modals') should be [accessible as unique routes.
 
 Currently the app has four pages, multiplied by two languages. If popups were
 implemented as static exported routes like this:
-- /a1/en/profile/
-- /a1/en/visual/profile/
-- /a1/en/visual/profile/?/60142/
+- /a1/en/settings/
+- /a1/en/visual/settings/
+- /a1/en/visual/settings/?/60142/
 
 ...then the number of exported .html and .txt pages would multiply by the
 number of possible popups, so that adding a new language might add several dozen
@@ -865,9 +860,9 @@ files to the build.
 
 The query string system introduced in [the previous step
 ](#parse-the-id-from-the-route) can prevent that kind of duplication, eg:
-- /a1/en/?/profile/
-- /a1/en/visual/?/profile/
-- /a1/en/visual/?/60142/profile/ (more natural than /profile/?/60142/)
+- /a1/en/?/settings/
+- /a1/en/visual/?/settings/
+- /a1/en/visual/?/60142/settings/ (more natural than /settings/?/60142/)
 
 1. `touch src/lib/query/query-has-segment.ts` and paste in:
    ```ts
@@ -920,41 +915,41 @@ The query string system introduced in [the previous step
      return <span className={outer}><div className={inner} /></span>
    }
    ```
-5. `touch src/components/pages/profile-popup-client.tsx` and paste in:
+5. `touch src/components/pages/settings-popup-client.tsx` and paste in:
    ```tsx
    'use client'   
-   import { UserAvatar } from '@carbon/icons-react'
+   import { SettingsAdjust } from '@carbon/icons-react'
    import { useSearchParams } from 'next/navigation'
    import { popupOpenHref, queryHasSegment } from '../../lib/query'
    import { PopupI } from '../../locales/locale-schema'
    import PopupIcon from './popup-icon'
    
-   export default function ProfilePopupClient({ t }: { t: PopupI }) {
+   export default function SettingsPopupClient({ t }: { t: PopupI }) {
      const query = useSearchParams().toString()
      const isActive = queryHasSegment(query, t.route)
      const openHref = !isActive && popupOpenHref(query, t.route)
      return (<>
-       <PopupIcon href={openHref} Icon={UserAvatar} t={t} />
+       <PopupIcon href={openHref} Icon={SettingsAdjust} t={t} />
      </>)
    }
    
    // Passed as a fallback to the Suspense boundary. Will be rendered in the
    // initial HTML, until the value is available during React hydration, when
-   // it will be replaced with `<ProfilePopupClient>`.
-   export function ProfilePopupFallback() {
+   // it will be replaced with `<SettingsPopupClient>`.
+   export function SettingsPopupFallback() {
      return <PopupIconFallback rounded="full" />
    }
    ```
-5. `touch src/components/popups/profile-popup.tsx` and paste in:
+5. `touch src/components/popups/settings-popup.tsx` and paste in:
    ```tsx
    import { Suspense } from 'react'
    import { PopupI } from '../../locales/locale-schema'
-   import ProfilePopupClient, { ProfilePopupFallback } from './profile-popup-client'
+   import SettingsPopupClient, { SettingsPopupFallback } from './settings-popup-client'
    
-   export default function ProfilePopup({ t }: { t: PopupI }) {
+   export default function SettingsPopup({ t }: { t: PopupI }) {
      return (
-       <Suspense fallback={<ProfilePopupFallback />}>
-         <ProfilePopupClient t={t} />
+       <Suspense fallback={<SettingsPopupFallback />}>
+         <SettingsPopupClient t={t} />
        </Suspense>
      )
    }
@@ -962,30 +957,25 @@ The query string system introduced in [the previous step
    From [the Next.js useSearchParams docs,
    ](https://nextjs.org/docs/app/api-reference/functions/use-search-params#static-rendering)
    the amount of static rendering can be maximised by placing a 'Suspense'
-   boundary just above the Profile icon.
-6. `touch src/components/popups/index.ts` and export the popup component  
-   (ProfilePopupClient and ProfilePopup don't need to be exported here)
-   ```tsx
-   export { default as ProfilePopup } from './profile-popup'
-   ```
-7. In src/components/header.tsx, replace:  
-   `import { UserAvatar } from '@carbon/icons-react'`  
+   boundary just above the Settings icon.
+6. In src/components/header.tsx, replace:  
+   `import { SettingsAdjust } from '@carbon/icons-react'`  
    with:  
-   `import { ProfilePopup } from './popups'`
-8. And replace:  
-   `<UserAvatar size="24" style={{ ... }} />`  
+   `import SettingsPopup from './popups/settings-popup'`
+7. And replace:  
+   `<SettingsAdjust size="24" style={{ ... }} />`  
    with:  
-   `<ProfilePopup t={t.profile} />`
+   `<SettingsPopup t={t.settings} />`
 8. `npm run bas` and check that the following works as expected (the momentary
-   dashed circle before the Profile icon appears shows that the fallback works)
-   - The /a1/es/ route should show the Profile icon, the same colour as the text
-   - Hovering over the icon should show the lighter colour, and 'Perfil' tooltip
-   - Clicking it should navigate to /a1/es/?/perfil/
+   dashed circle before the Settings icon appears shows that the fallback works)
+   - The /a1/es/ route should show the Settings icon, the same colour as the text
+   - Hovering over the icon should show the lighter colour, and 'Configuración' tooltip
+   - Clicking it should navigate to /a1/es/?/configuracion/
    - The icon should now be darker, unhoverable, and show no tooltip
    - Clicking 'Plano' should navigate to /a1/es/plano/
    - The icon should be hoverable again
    - Manually appending ?/12345/ to the route should show '12345' in the content
-   - Clicking the icon should navigate to /a1/es/plano/?/12345/perfil/
+   - Clicking the icon should navigate to /a1/es/plano/?/12345/configuracion/
    - The content should still show '12345', while the icon is unhoverable again
 9. Control-C to stop `npm run bas` and rename a1/ back to docs/
 10. In VS Code, Command-Shift-F to multi-file search for 'xMidYMid' - you should
@@ -1017,12 +1007,12 @@ The query string system introduced in [the previous step
      return mounted ? createPortal(el, document.body) : null
    }
    ```
-4. In src/components/popup/profile-popup-client.tsx, add:  
+4. In src/components/popup/settings-popup-client.tsx, add:  
    `import PopupPanel from './popup-panel'` at the top, and  
    `<PopupPanel hidden={!isActive}>{t.title}</PopupPanel>` after
    `<PopupIcon ... />`
 5. `npm run bas` and check that the popup appears in the correct language when
-   the Profile icon is clicked
+   the Settings icon is clicked
 6. Control-C to stop `npm run bas` and rename a1/ back to docs/
 
 ### __Allow the popup panel to be hidden__
@@ -1124,7 +1114,7 @@ This step hides the popup panel when:
      return mounted ? createPortal(el, document.body) : null
    }
    ```
-7. In src/components/pages/profile-popup-client.tsx, import `popupCloseHref`
+7. In src/components/pages/settings-popup-client.tsx, import `popupCloseHref`
    from `'../../lib/query'`
 8. Then define the `xHid` prop:  
    `const xHid = isActive ? popupCloseHref(query) : ''`  
@@ -1132,7 +1122,7 @@ This step hides the popup panel when:
    - If non-empty it specifies the 'Close' href
    - If empty it means that the PopupPanel should be hidden
 9. Finally, pass `xHid` to the PopupPanel, along with the icon for the top bar:  
-   `<PopupPanel xHid={xHid} Icon={UserAvatar} t={t}>@TODO</PopupPanel>`
+   `<PopupPanel xHid={xHid} Icon={SettingsAdjust} t={t}>@TODO</PopupPanel>`
 10. `npm run bas` and check that colours respond to system dark/light modes, and
     that the popup panel can be dismissed by:
     - Clicking the Close button

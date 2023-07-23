@@ -5,7 +5,7 @@ const es: LocaleI = {
   floorplan: { intro: 'Consectetur', route: 'plano', title: 'Plano' },
   home: { intro: 'Muy Pronto', title: 'NOT-TIMID' },
   moodboard: { intro: 'Adipiscing', route: 'tablero-de-humor', title: 'Tablero de Humor' },
-  profile: { route: 'perfil', title: 'Perfil' },
+  settings: { route: 'configuracion', title: 'Configuración' },
   visual: { intro: 'Elit', route: 'visualizacion', title: 'Visualizacion' },
 }
 export default es
